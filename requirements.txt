@@ -1,0 +1,5 @@
+gym
+numpy
+tensorflow
+gym-super-mario-bros
+cv2
