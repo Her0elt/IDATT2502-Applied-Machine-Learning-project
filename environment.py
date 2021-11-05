@@ -7,21 +7,13 @@ from gym.wrappers import FrameStack
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
+from constants import ENV_HEIGHT, ENV_WIDTH, SKIP_AND_STACK_AMOUNT, WOLRD
+
 cv2.ocl.setUseOpenCL(False)
 
 
-class ClipRewardEnv(gym.RewardWrapper):
-    def __init__(self, env):
-        "Modifies the environment so that the reward is only between -1 and 1"
-        gym.RewardWrapper.__init__(self, env)
-
-    def reward(self, reward):
-        """Returns the sign of the reward so that the reward can only be -1, 0 or 1"""
-        return np.sign(reward)
-
-
 class WarpFrame(gym.ObservationWrapper):
-    def __init__(self, env, width=84, height=84, grayscale=True):
+    def __init__(self, env, width=ENV_HEIGHT, height=ENV_WIDTH, grayscale=True):
         """Warp frames to 84x84 as done in the Nature paper and later work."""
         gym.ObservationWrapper.__init__(self, env)
         self.width = width
@@ -103,41 +95,12 @@ class EpisodicLifeEnv(gym.Wrapper):
         return obs
 
 
-class NormalizedEnv(gym.ObservationWrapper):
-    def __init__(self, env=None):
-        """"Normalize the observation by Zero-centering mean subtraction.
-            This can help with convergence speed"""
-        gym.ObservationWrapper.__init__(self, env)
-        self.state_mean = 0
-        self.state_std = 0
-        self.alpha = 0.9999
-        self.num_steps = 0
-
-    def observation(self, observation):
-        """Normalize the observation by mean subtration
-            this is done by calculating the running mean of all the observations
-            the agent has seen so far"""
-        self.num_steps += 1
-        self.state_mean = self.state_mean * self.alpha + observation.mean() * (
-            1 - self.alpha
-        )
-        self.state_std = self.state_std * self.alpha + observation.std() * (
-            1 - self.alpha
-        )
-        unbiased_mean = self.state_mean / (1 - pow(self.alpha, self.num_steps))
-        unbiased_std = self.state_std / (1 - pow(self.alpha, self.num_steps))
-        return (observation - unbiased_mean) / (unbiased_std + 1e-8)
-
-
 def create_mario_env():
-    env = gym_super_mario_bros.make("SuperMarioBros-v0")
+    env = gym_super_mario_bros.make(WOLRD)
     env = JoypadSpace(env, RIGHT_ONLY)
-
-    # env = NormalizedEnv(env)
-    env = SkipFrame(env, skip=4)
-    env = ClipRewardEnv(env)
+    env = SkipFrame(env, skip=SKIP_AND_STACK_AMOUNT)
     env = WarpFrame(env)
     env = EpisodicLifeEnv(env)
-    env = FrameStack(env, 4)  # tre frames
+    env = FrameStack(env, SKIP_AND_STACK_AMOUNT)  # tre frames
 
     return env

@@ -2,6 +2,13 @@ import random
 
 import numpy as np
 
+from constants import (
+    BATCH_SIZE,
+    EPSILON,
+    EPSILON_DECAY_RATE,
+    GAMMA,
+    MIN_EPSILON,
+)
 from model import DQN
 from replay_buffer import ReplyBuffer
 
@@ -12,8 +19,9 @@ class DQNAgent:
         env,
         input_shape,
         action_shape,
-        epsilon_decay_rate=0.9999,
-        min_epsilon=0.01,
+        epsilon_decay_rate=EPSILON_DECAY_RATE,
+        min_epsilon=MIN_EPSILON,
+        epsilon=EPSILON,
     ):
         self.state_size = input_shape
         self.env = env
@@ -21,10 +29,9 @@ class DQNAgent:
         self.memory = ReplyBuffer()
         self.min_epsilon = min_epsilon
         self.epsilon_decay_rate = epsilon_decay_rate
-        self.epsilon = 1
-        self._current_score = 0
-        self.batch_size = 32
-        self.gamma = 0.99
+        self.epsilon = epsilon
+        self.batch_size = BATCH_SIZE
+        self.gamma = GAMMA
         self.model = DQN(input_shape, action_shape)
 
     def action(self, state):

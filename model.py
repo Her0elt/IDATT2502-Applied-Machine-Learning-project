@@ -14,11 +14,16 @@ class DQN:
                 32, (8, 8), strides=(4, 4), activation="relu", input_shape=input_shape
             )
         )
-        self.model.add(Conv2D(64, (4, 4), strides=(2, 2), activation="relu"))
-        self.model.add(Conv2D(64, (3, 3), strides=(1, 1), activation="relu"))
+        self.model.add(Conv2D(16, (4, 4), strides=(2, 2), activation="relu"))
         self.model.add(Flatten())
         self.model.add(
             Dense(64, activation="relu", kernel_initializer="random_uniform")
+        )
+        self.model.add(
+            Dense(32, activation="relu", kernel_initializer="random_uniform")
+        )
+        self.model.add(
+            Dense(16, activation="relu", kernel_initializer="random_uniform")
         )
         self.model.add(Dense(action_shape, activation="softmax"))
         self.model.compile(
