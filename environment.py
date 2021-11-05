@@ -116,7 +116,6 @@ class NormalizedEnv(gym.ObservationWrapper):
 
 def create_mario_env():
     env = gym_super_mario_bros.make('SuperMarioBros-v0')
-    # env = JoypadSpace(env, [["right"], ["right", "A"]])
     env = JoypadSpace(env, RIGHT_ONLY)
     env = EpisodicLifeEnv(env)
     env = SkipFrame(env, skip=4)
