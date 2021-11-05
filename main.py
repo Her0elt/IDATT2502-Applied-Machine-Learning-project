@@ -4,11 +4,11 @@ from environment import create_mario_env
 
 def train(env, agent, episodes):
     frame_count = 0
-    score = 0
     scores = []
     num_episode_steps = env.spec.max_episode_steps
     max_reward = 0
     for episode in range(episodes):
+        score = 0
         print(f"Episode: {episode}")
         done = False
         state = agent.preprocess_state(env.reset())
@@ -25,6 +25,7 @@ def train(env, agent, episodes):
             if frame_count % 4 == 0:
                 agent.replay()
             frame_count+=1
+        print(f"Score: {score}, max: {max_reward}")
         if score > max_reward:
             max_reward = score
             agent.model.save_model('dqn_mario_agent_v0.h5')

@@ -1,5 +1,5 @@
 import gym_super_mario_bros
-from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
+from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 import gym
 from gym.wrappers import FrameStack
@@ -13,7 +13,8 @@ class MarioEnvironment(gym.Wrapper):
     def __init__(self, world='SuperMarioBros-v0'):
         self.env = gym_super_mario_bros.make(world)
         # self.env = JoypadSpace(self.env, SIMPLE_MOVEMENT)
-        self.env = JoypadSpace(self.env, [["right"], ["right", "A"]])
+        self.env = JoypadSpace(self.env, RIGHT_ONLY)
+        # self.env = JoypadSpace(self.env, [["right"], ["right", "A"]])
         gym.Wrapper.__init__(self, self.env)
         self._current_score = 0
     
