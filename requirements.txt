@@ -6,3 +6,4 @@ pylint
 black == 19.10b0
 isort
 flake8
+wandb

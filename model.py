@@ -18,11 +18,11 @@ class DQN:
         self.model.add(Conv2D(64, (3, 3), strides=(1, 1), activation="relu"))
         self.model.add(Flatten())
         self.model.add(
-            Dense(512, activation="relu", kernel_initializer="random_uniform")
+            Dense(64, activation="relu", kernel_initializer="random_uniform")
         )
         self.model.add(Dense(action_shape, activation="softmax"))
         self.model.compile(
-            loss="mse", optimizer=RMSprop(learning_rate=0.0001), metrics=["accuracy"]
+            loss="mse", optimizer=RMSprop(learning_rate=0.00025), metrics=["accuracy"]
         )
 
     def fit(self, x: np.ndarray, y: np.ndarray, batch_size: int, verbose: 0 | 1):
