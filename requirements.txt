@@ -2,4 +2,8 @@ gym
 numpy
 tensorflow
 gym-super-mario-bros
-cv2
+pylint
+black == 19.10b0
+isort
+flake8
+wandb

@@ -1,20 +1,24 @@
+import cv2
+import gym
 import gym_super_mario_bros
+import numpy as np
+from gym import spaces
+from gym.wrappers import FrameStack
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
-import gym
-from gym.wrappers import FrameStack
-from gym import spaces
-import cv2
+
 cv2.ocl.setUseOpenCL(False)
-import numpy as np
+
 
 class ClipRewardEnv(gym.RewardWrapper):
     def __init__(self, env):
         "Modifies the environment so that the reward is only between -1 and 1"
         gym.RewardWrapper.__init__(self, env)
+
     def reward(self, reward):
         """Returns the sign of the reward so that the reward can only be -1, 0 or 1"""
         return np.sign(reward)
+
 
 class WarpFrame(gym.ObservationWrapper):
     def __init__(self, env, width=84, height=84, grayscale=True):
@@ -24,19 +28,24 @@ class WarpFrame(gym.ObservationWrapper):
         self.height = height
         self.grayscale = grayscale
         if self.grayscale:
-            self.observation_space = spaces.Box(low=0, high=255,
-                shape=(self.height, self.width, 1), dtype=np.uint8)
+            self.observation_space = spaces.Box(
+                low=0, high=255, shape=(self.height, self.width, 1), dtype=np.uint8
+            )
         else:
-            self.observation_space = spaces.Box(low=0, high=255,
-                shape=(self.height, self.width, 3), dtype=np.uint8)
+            self.observation_space = spaces.Box(
+                low=0, high=255, shape=(self.height, self.width, 3), dtype=np.uint8
+            )
 
     def observation(self, frame):
         if self.grayscale:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        frame = cv2.resize(frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(
+            frame, (self.width, self.height), interpolation=cv2.INTER_AREA
+        )
         if self.grayscale:
             frame = np.expand_dims(frame, -1)
         return frame
+
 
 class SkipFrame(gym.Wrapper):
     def __init__(self, env, skip):
@@ -56,6 +65,7 @@ class SkipFrame(gym.Wrapper):
                 break
         return obs, total_reward, done, info
 
+
 class EpisodicLifeEnv(gym.Wrapper):
     def __init__(self, env):
         """Make end-of-life == end-of-episode, but only reset on true game over.
@@ -63,7 +73,7 @@ class EpisodicLifeEnv(gym.Wrapper):
         """
         gym.Wrapper.__init__(self, env)
         self.lives = 0
-        self.was_real_done  = True
+        self.was_real_done = True
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
@@ -91,9 +101,11 @@ class EpisodicLifeEnv(gym.Wrapper):
             obs, _, _, info = self.env.step(0)
             self.lives = info["life"]
         return obs
+
+
 class NormalizedEnv(gym.ObservationWrapper):
     def __init__(self, env=None):
-        """"Normalize the observation by Zero-centering mean subtraction. 
+        """"Normalize the observation by Zero-centering mean subtraction.
             This can help with convergence speed"""
         gym.ObservationWrapper.__init__(self, env)
         self.state_mean = 0
@@ -102,27 +114,30 @@ class NormalizedEnv(gym.ObservationWrapper):
         self.num_steps = 0
 
     def observation(self, observation):
-        """Normalize the observation by mean subtration 
-            this is done by calculating the running mean of all the observations 
+        """Normalize the observation by mean subtration
+            this is done by calculating the running mean of all the observations
             the agent has seen so far"""
         self.num_steps += 1
-        self.state_mean = self.state_mean * self.alpha + \
-            observation.mean() * (1 - self.alpha)
-        self.state_std = self.state_std * self.alpha + \
-            observation.std() * (1 - self.alpha)
+        self.state_mean = self.state_mean * self.alpha + observation.mean() * (
+            1 - self.alpha
+        )
+        self.state_std = self.state_std * self.alpha + observation.std() * (
+            1 - self.alpha
+        )
         unbiased_mean = self.state_mean / (1 - pow(self.alpha, self.num_steps))
         unbiased_std = self.state_std / (1 - pow(self.alpha, self.num_steps))
         return (observation - unbiased_mean) / (unbiased_std + 1e-8)
 
+
 def create_mario_env():
-    env = gym_super_mario_bros.make('SuperMarioBros-v0')
+    env = gym_super_mario_bros.make("SuperMarioBros-v0")
     env = JoypadSpace(env, RIGHT_ONLY)
-    
-    env = NormalizedEnv(env)
+
+    # env = NormalizedEnv(env)
     env = SkipFrame(env, skip=4)
     env = ClipRewardEnv(env)
     env = WarpFrame(env)
     env = EpisodicLifeEnv(env)
-    env = FrameStack(env, 4)
-    
+    env = FrameStack(env, 4)  # tre frames
+
     return env

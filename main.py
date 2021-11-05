@@ -1,6 +1,6 @@
 from agent import DQNAgent
 from environment import create_mario_env
-    
+
 
 def train(env, agent, episodes):
     scores = []
@@ -15,7 +15,7 @@ def train(env, agent, episodes):
             action = agent.action(state)
             next_state, reward, done, _ = env.step(action)
             env.render(mode="human")
-            next_state =  agent.preprocess_state(next_state)
+            next_state = agent.preprocess_state(next_state)
             agent.remember(state, action, reward, next_state, done)
             score += reward
             state = next_state
@@ -25,11 +25,12 @@ def train(env, agent, episodes):
         print(f"Score: {score}, max: {max_reward}")
         if score > max_reward:
             max_reward = score
-            agent.model.save_model('dqn_mario_agent_v0.h5')
+            agent.model.save_model("dqn_mario_agent_v0.h5")
 
         scores.append(reward)
-    print('Finished training!')
+    print("Finished training!")
     env.close()
+
 
 def run(env, agent, model_name):
     agent.model.load_model(model_name)
@@ -39,13 +40,14 @@ def run(env, agent, model_name):
         action = agent.action(state)
         next_state, reward, done, _ = env.step(action)
         env.render(mode="human")
-        next_state =  agent.preprocess_state(next_state)
+        next_state = agent.preprocess_state(next_state)
         state = next_state
     env.close()
-    
+
+
 env = create_mario_env()
 state_space = env.observation_space.shape
 action_space = env.action_space.n
 agent = DQNAgent(env, state_space, action_space)
-# train(env, agent,  episodes=500)
-run(env, agent, "dqn_mario_agent_v0.h5")
+train(env, agent, episodes=500)
+# run(env, agent, "dqn_mario_agent_v0.h5")
