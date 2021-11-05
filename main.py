@@ -1,5 +1,5 @@
 from agent import DQNAgent
-from environment import MarioEnvironment
+from environment import create_mario_env
     
 
 def train(env, agent, episodes):
@@ -8,12 +8,13 @@ def train(env, agent, episodes):
     scores = []
     num_episode_steps = env.spec.max_episode_steps
     max_reward = 0
-    for _ in range(episodes):
+    for episode in range(episodes):
+        print(f"Episode: {episode}")
         done = False
         state = agent.preprocess_state(env.reset())
         for _ in range(num_episode_steps):
             action = agent.action(state)
-            next_state, reward, done, _ = env.step(action) 
+            next_state, reward, done, _ = env.step(action)
             env.render(mode="human")
             next_state =  agent.preprocess_state(next_state)
             agent.remember(state, action, reward, next_state, done)
@@ -25,14 +26,15 @@ def train(env, agent, episodes):
                 agent.replay()
             frame_count+=1
         if score > max_reward:
+            max_reward = score
             agent.model.save_model('dqn_mario_agent_v0.h5')
 
         scores.append(reward)
     print('Finished training!')
     env.close()
 
-env = MarioEnvironment()
+env = create_mario_env()
 state_space = env.observation_space.shape
 action_space = env.action_space.n
 agent = DQNAgent(env, state_space, action_space)
-train(env, agent,  episodes=50000)
+train(env, agent,  episodes=500)

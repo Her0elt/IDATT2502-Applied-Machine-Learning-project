@@ -18,7 +18,7 @@ class DQN:
         self.model.add(Dense(512, activation='relu', kernel_initializer='random_uniform'))
         self.model.add(Dense(action_shape, activation="softmax"))   
         self.model.compile(loss="mse", optimizer=RMSprop(
-            learning_rate=0.0001), metrics=["accuracy"])
+            learning_rate=0.00025), metrics=["accuracy"])
     
     def fit(self, x: np.ndarray, y: np.ndarray, batch_size: int, verbose: 0 | 1):
         self.model.fit(x, y, batch_size=batch_size, verbose=verbose)
