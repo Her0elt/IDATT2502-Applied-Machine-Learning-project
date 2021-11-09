@@ -14,20 +14,19 @@ class DQN:
         self.model = Sequential(
             [   
                 Conv2D(
-                    filters=32,
+                    filters=4,
                     kernel_size=(8, 8),
                     strides=(4, 4),
                     activation="relu",
                     input_shape=input_shape,
                 ),
                 Conv2D(
-                    filters=64, kernel_size=(4, 4), strides=(2, 2), activation="relu"
+                    filters=8, kernel_size=(4, 4), strides=(2, 2), activation="relu"
                 ),
                 Conv2D(
-                    filters=32, kernel_size=(3, 3), strides=(1, 1), activation="relu"
+                    filters=16, kernel_size=(3, 3), strides=(1, 1), activation="relu"
                 ),
                 Flatten(),
-                Dense(128, activation="relu", kernel_initializer="he_uniform"),
                 Dense(64, activation="relu", kernel_initializer="he_uniform"),
                 Dense(32, activation="relu", kernel_initializer="he_uniform"),
                 Dense(16, activation="relu", kernel_initializer="he_uniform"),
@@ -51,3 +50,10 @@ class DQN:
 
     def load_model(self, file_name: str):
         self.model = load_model(file_name)
+    
+    def get_weights(self):
+        return self.model.get_weights()
+    
+    def set_weights(self, weights):
+        self.model.set_weights(weights)
+    

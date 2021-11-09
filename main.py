@@ -1,9 +1,10 @@
 from agent import DQNAgent
-from constants import EPISODES, REPLAY_FRAME_COUNT
+from constants import COPY_STEPS, EPISODES, REPLAY_FRAME_COUNT
+from double_agent import DoubleDQNAgent
 from environment import create_mario_env
 
 
-def train(env, agent, episodes, model_name=None):
+def train(env, agent, episodes, model_name=None, render=False):
     if model_name is not None:
         agent.model.load_model(model_name)
     scores = []
@@ -19,7 +20,8 @@ def train(env, agent, episodes, model_name=None):
         for _ in range(num_episode_steps):
             action = agent.action(state)
             next_state, reward, done, info = env.step(action)
-            # env.render(mode="human")
+            if render:
+                env.render(mode="human")
             next_state = agent.preprocess_state(next_state)
             agent.remember(state, action, reward, next_state, done)
             score += reward
@@ -28,6 +30,9 @@ def train(env, agent, episodes, model_name=None):
                 break
             if frame_count % REPLAY_FRAME_COUNT == 0:
                 agent.replay()
+            
+            if frame_count & COPY_STEPS == 0:
+                agent.copy_weights()
             frame_count += 1
         print(f"Score: {score}, max: {max_reward}")
         if score > max_reward or info["flag_get"]:
@@ -38,7 +43,8 @@ def train(env, agent, episodes, model_name=None):
         scores.append(reward)
     print("Finished training!")
     agent.model.save_model(f"models/dqn_mario_agent_v0_done.h5")
-    # env.close()
+    if render:
+        env.close()
 
 
 def run(env, agent, model_name):
@@ -58,6 +64,6 @@ env = create_mario_env()
 state_space = env.observation_space.shape
 action_space = env.action_space.n
 print(state_space)
-agent = DQNAgent(env, state_space, action_space)
-# train(env, agent, episodes=EPISODES)
-run(env, agent, "models/dqn_mario_agent_v0_2975.0_flag(True).h5")
+agent = DoubleDQNAgent(env, state_space, action_space)
+train(env, agent, episodes=EPISODES, render=True)
+# run(env, agent, "models/traning_model_one/dqn_mario_agent_v0_done_first_training.h5")
