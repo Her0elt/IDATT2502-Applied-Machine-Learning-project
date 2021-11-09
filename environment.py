@@ -98,9 +98,9 @@ class EpisodicLifeEnv(gym.Wrapper):
 def create_mario_env():
     env = gym_super_mario_bros.make(WOLRD)
     env = JoypadSpace(env, RIGHT_ONLY)
-    env = SkipFrame(env, skip=SKIP_AND_STACK_AMOUNT)
-    env = WarpFrame(env)
-    env = EpisodicLifeEnv(env)
-    env = FrameStack(env, SKIP_AND_STACK_AMOUNT)  # tre frames
+    # env = SkipFrame(env, skip=SKIP_AND_STACK_AMOUNT)
+    # env = WarpFrame(env)
+    # env = EpisodicLifeEnv(env)
+    # env = FrameStack(env, SKIP_AND_STACK_AMOUNT)  # tre frames
 
     return env

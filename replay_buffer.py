@@ -1,8 +1,10 @@
 from collections import deque
 
+from constants import MEMORY_SIZE
+
 
 class ReplyBuffer:
-    def __init__(self, memory_size=20000):
+    def __init__(self, memory_size=MEMORY_SIZE):
         self.state = deque(maxlen=memory_size)
         self.action = deque(maxlen=memory_size)
         self.reward = deque(maxlen=memory_size)
