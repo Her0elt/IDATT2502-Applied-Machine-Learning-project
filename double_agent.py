@@ -90,3 +90,4 @@ class DoubleDQNAgent:
             np.array(states), np.array(target), batch_size=self.batch_size, verbose=0
         )
         self.update_epsilon()
+
