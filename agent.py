@@ -8,7 +8,6 @@ from constants import (
     EPSILON_DECAY_RATE,
     GAMMA,
     MIN_EPSILON,
-    SKIP_AND_STACK_AMOUNT,
 )
 from model import DQN
 from replay_buffer import ReplyBuffer
@@ -45,7 +44,7 @@ class DQNAgent:
         self.memory.append(state, action, reward, next_state, done)
 
     def preprocess_state(self, state):
-        return np.array(np.reshape(state, (1,)+ self.state_size), dtype=np.float32)
+        return np.array(np.reshape(state, (1,) + self.state_size), dtype=np.float32)
 
     def update_q_func(self, reward, next_state, done):
         if done:

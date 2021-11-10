@@ -1,59 +1,39 @@
-from typing import Any
-
 import numpy as np
-from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPool2D, Input
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.optimizers import RMSprop
+import torch
+import torch.nn as nn
 
-from constants import LEARNING_RATE
+from constants import MODEL_SAVE_NAME, TARGET_MODEL_SAVE_NAME
 
 
-class DQN:
-    def __init__(self, input_shape: tuple, action_shape: int):
-
-        self.model = Sequential(
-            [   
-                Conv2D(
-                    filters=4,
-                    kernel_size=(8, 8),
-                    strides=(4, 4),
-                    activation="relu",
-                    input_shape=input_shape,
-                ),
-                Conv2D(
-                    filters=8, kernel_size=(4, 4), strides=(2, 2), activation="relu"
-                ),
-                Conv2D(
-                    filters=16, kernel_size=(3, 3), strides=(1, 1), activation="relu"
-                ),
-                Flatten(),
-                Dense(64, activation="relu", kernel_initializer="he_uniform"),
-                Dense(32, activation="relu", kernel_initializer="he_uniform"),
-                Dense(16, activation="relu", kernel_initializer="he_uniform"),
-                Dense(action_shape, activation="softmax"),
-            ]
-        )
-        self.model.compile(
-            loss="mse",
-            optimizer=RMSprop(learning_rate=LEARNING_RATE),
-            metrics=["accuracy"],
+class DQN(nn.Module):
+    def __init__(self, input_shape, n_actions):
+        super(DQN, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.ReLU(),
         )
 
-    def fit(self, x: np.ndarray, y: np.ndarray, batch_size: int, verbose: 0 | 1):
-        self.model.fit(x, y, batch_size=batch_size, verbose=verbose)
+        conv_out_size = self._get_conv_out(input_shape)
+        self.fc = nn.Sequential(
+            nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, n_actions)
+        )
 
-    def predict(self, x: np.ndarray) -> Any:
-        return self.model.predict(x)
+    def _get_conv_out(self, shape):
+        o = self.conv(torch.zeros(1, *shape))
+        return int(np.prod(o.size()))
 
-    def save_model(self, file_name: str):
-        self.model.save(file_name)
+    def forward(self, x):
+        conv_out = self.conv(x).view(x.size()[0], -1)
+        return self.fc(conv_out)
 
-    def load_model(self, file_name: str):
-        self.model = load_model(file_name)
-    
-    def get_weights(self):
-        return self.model.get_weights()
-    
-    def set_weights(self, weights):
-        self.model.set_weights(weights)
-    
+    def save(self, target=False):
+        name = TARGET_MODEL_SAVE_NAME if target else MODEL_SAVE_NAME
+        torch.save(self.state_dict(), name)
+
+    def load(self, target=False):
+        name = TARGET_MODEL_SAVE_NAME if target else MODEL_SAVE_NAME
+        return torch.load(name)
