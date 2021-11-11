@@ -34,6 +34,6 @@ class DQN(nn.Module):
         name = TARGET_MODEL_SAVE_NAME if target else MODEL_SAVE_NAME
         torch.save(self.state_dict(), name)
 
-    def load(self, target=False):
+    def load(self, device, target=False):
         name = TARGET_MODEL_SAVE_NAME if target else MODEL_SAVE_NAME
-        return torch.load(name)
+        self.load_state_dict(torch.load(name, map_location=torch.device(device)))

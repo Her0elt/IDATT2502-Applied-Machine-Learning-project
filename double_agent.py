@@ -8,12 +8,15 @@ from torch import nn
 from constants import (
     BATCH_SIZE,
     COPY_STEPS,
+    ENDING_POSISTION_PICKLE,
     EPSILON,
     EPSILON_DECAY_RATE,
     GAMMA,
     LEARNING_RATE,
     MEMORY_SIZE,
     MIN_EPSILON,
+    NUM_IN_QUEUE_PICKLE,
+    TOTAL_REWARDS_PICKLE,
 )
 from model import DQN
 from replay_buffer import ReplyBuffer
@@ -54,23 +57,25 @@ class DoubleDQNAgent:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
 
     def load(self):
-        self.model = self.model.load()
-        self.target_model = self.target_model.save(target=True)
+        self.model.load(self.device)
+        self.target_model.load(self.device, target=True)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
         self.memory.load()
-        with open("ending_position.pkl", "rb") as f:
+        self.memory_size = MEMORY_SIZE
+        with open(ENDING_POSISTION_PICKLE, "rb") as f:
             self.ending_position = pickle.load(f)
-        with open("num_in_queue.pkl", "rb") as f:
+        with open(NUM_IN_QUEUE_PICKLE, "rb") as f:
             self.num_in_queue = pickle.load(f)
 
     def save(self, total_rewards):
         self.model.save()
         self.target_model.save(target=True)
         self.memory.save()
-        with open("ending_position.pkl", "wb") as f:
+        with open(ENDING_POSISTION_PICKLE, "wb") as f:
             pickle.dump(self.ending_position, f)
-        with open("num_in_queue.pkl", "wb") as f:
+        with open(NUM_IN_QUEUE_PICKLE, "wb") as f:
             pickle.dump(self.num_in_queue, f)
-        with open("total_rewards.pkl", "wb") as f:
+        with open(TOTAL_REWARDS_PICKLE, "wb") as f:
             pickle.dump(total_rewards, f)
 
     def act(self, state):
@@ -87,6 +92,14 @@ class DoubleDQNAgent:
                 .cpu()
             )
 
+    def play(self, state):
+        return (
+                torch.argmax(self.model(state.to(self.device)))
+                .unsqueeze(0)
+                .unsqueeze(0)
+                .cpu()
+            )
+        
     def remember(self, state, action, reward, next_state, done):
         self.ending_position = (self.ending_position + 1) % self.memory_size
         self.num_in_queue = min(self.num_in_queue + 1, self.memory_size)
