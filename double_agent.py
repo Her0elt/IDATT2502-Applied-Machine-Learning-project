@@ -1,7 +1,6 @@
 import pickle
 import random
 
-import numpy as np
 import torch
 from torch import nn
 
@@ -94,12 +93,12 @@ class DoubleDQNAgent:
 
     def play(self, state):
         return (
-                torch.argmax(self.model(state.to(self.device)))
-                .unsqueeze(0)
-                .unsqueeze(0)
-                .cpu()
-            )
-        
+            torch.argmax(self.model(state.to(self.device)))
+            .unsqueeze(0)
+            .unsqueeze(0)
+            .cpu()
+        )
+
     def remember(self, state, action, reward, next_state, done):
         self.ending_position = (self.ending_position + 1) % self.memory_size
         self.num_in_queue = min(self.num_in_queue + 1, self.memory_size)

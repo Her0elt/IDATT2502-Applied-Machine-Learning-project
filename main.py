@@ -1,7 +1,9 @@
+import time
+
+import numpy as np
 import torch
 from tqdm import tqdm
-import time
-import numpy as np
+
 from constants import EPISODES
 from double_agent import DoubleDQNAgent
 from environment import create_mario_env
@@ -9,7 +11,7 @@ from environment import create_mario_env
 
 def run(training_mode, pretrained, num_episodes=EPISODES):
 
-    env = create_mario_env() 
+    env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
     if pretrained:
@@ -46,12 +48,13 @@ def run(training_mode, pretrained, num_episodes=EPISODES):
 
         total_rewards.append(total_reward)
 
-        print(
+        tqdm.write(
             "Total reward after episode {} is {}".format(ep_num + 1, total_rewards[-1])
         )
         num_episodes += 1
     agent.save()
     env.close()
+
 
 def play():
     env = create_mario_env()
@@ -61,7 +64,7 @@ def play():
     agent.model.load(agent.device)
     state = env.reset()
     state = torch.Tensor(np.array([state]))
-    
+
     while True:
         action = agent.play(state)
         state_next, _, done, _ = env.step(int(action[0]))
@@ -74,6 +77,5 @@ def play():
     env.close()
 
 
-# run(training_mode=True, pretrained=True)
+# run(training_mode=True, pretrained=False)
 play()
-
