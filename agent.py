@@ -44,7 +44,7 @@ class DQNAgent:
         self.memory.append(state, action, reward, next_state, done)
 
     def preprocess_state(self, state):
-        return np.reshape(state, (1,) + self.state_size)
+        return np.array(np.reshape(state, (1,) + self.state_size), dtype=np.float32)
 
     def update_q_func(self, reward, next_state, done):
         if done:

@@ -1,58 +1,81 @@
-from agent import DQNAgent
-from constants import EPISODES, REPLAY_FRAME_COUNT
+import time
+
+import numpy as np
+import torch
+from tqdm import tqdm
+
+from constants import EPISODES
+from double_agent import DoubleDQNAgent
 from environment import create_mario_env
 
 
-def train(env, agent, episodes):
-    scores = []
-    num_episode_steps = env.spec.max_episode_steps
-    max_reward = 0
-    for episode in range(episodes):
-        score = 0
-        print(f"Episode: {episode}")
-        done = False
-        frame_count = 0
-        state = agent.preprocess_state(env.reset())
-        info = None
-        for _ in range(num_episode_steps):
-            action = agent.action(state)
-            next_state, reward, done, info = env.step(action)
-            env.render(mode="human")
-            next_state = agent.preprocess_state(next_state)
-            agent.remember(state, action, reward, next_state, done)
-            score += reward
-            state = next_state
+def run(training_mode, pretrained, num_episodes=EPISODES):
+
+    env = create_mario_env()
+    state_space = env.observation_space.shape
+    action_space = env.action_space.n
+    if pretrained:
+        agent = DoubleDQNAgent(env, state_space, action_space, memory_size=0)
+        agent.load()
+    else:
+        agent = DoubleDQNAgent(env, state_space, action_space)
+
+    total_rewards = []
+
+    for ep_num in tqdm(range(num_episodes)):
+        state = env.reset()
+        state = torch.Tensor(np.array([state]))
+        total_reward = 0
+        steps = 0
+        while True:
+            action = agent.act(state)
+            steps += 1
+
+            state_next, reward, done, info = env.step(int(action[0]))
+            total_reward += reward
+            state_next = torch.Tensor(np.array([state_next]))
+            reward = torch.tensor(np.array([reward])).unsqueeze(0)
+
+            done = torch.tensor(np.array([int(done)])).unsqueeze(0)
+
+            if training_mode:
+                agent.remember(state, action, reward, state_next, done)
+                agent.replay()
+
+            state = state_next
             if done:
                 break
-            if frame_count % REPLAY_FRAME_COUNT == 0:
-                agent.replay()
-            frame_count += 1
-        print(f"Score: {score}, max: {max_reward}")
-        if score > max_reward or info["flag_get"]:
-            max_reward = score
-            agent.model.save_model(f"models/dqn_mario_agent_v0_{score}.h5")
 
-        scores.append(reward)
-    print("Finished training!")
+        total_rewards.append(total_reward)
+
+        tqdm.write(
+            "Total reward after episode {} is {}".format(ep_num + 1, total_rewards[-1])
+        )
+        num_episodes += 1
+    agent.save()
     env.close()
 
 
-def run(env, agent, model_name):
-    agent.model.load_model(model_name)
-    num_episode_steps = env.spec.max_episode_steps
-    state = agent.preprocess_state(env.reset())
-    for _ in range(num_episode_steps):
-        action = agent.action(state)
-        next_state, reward, done, _ = env.step(action)
-        env.render(mode="human")
-        next_state = agent.preprocess_state(next_state)
-        state = next_state
+def play():
+    env = create_mario_env()
+    state_space = env.observation_space.shape
+    action_space = env.action_space.n
+    agent = DoubleDQNAgent(env, state_space, action_space, memory_size=0)
+    agent.model.load(agent.device)
+    state = env.reset()
+    state = torch.Tensor(np.array([state]))
+
+    while True:
+        action = agent.play(state)
+        state_next, _, done, _ = env.step(int(action[0]))
+        env.render()
+        time.sleep(0.05)
+        state_next = torch.Tensor(np.array([state_next]))
+        state = state_next
+        if done:
+            break
     env.close()
 
 
-env = create_mario_env()
-state_space = env.observation_space.shape
-action_space = env.action_space.n
-agent = DQNAgent(env, state_space, action_space)
-train(env, agent, episodes=EPISODES)
-# run(env, agent, "dqn_mario_agent_v0.h5")
+# run(training_mode=True, pretrained=False)
+play()
