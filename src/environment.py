@@ -7,7 +7,7 @@ import numpy as np
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
-from constants import ENV_HEIGHT, ENV_WIDTH, SKIP_AND_STACK_AMOUNT, WOLRD
+from src.constants import ENV_HEIGHT, ENV_WIDTH, SKIP_AND_STACK_AMOUNT, WOLRD
 
 
 class MaxAndSkipEnv(gym.Wrapper):

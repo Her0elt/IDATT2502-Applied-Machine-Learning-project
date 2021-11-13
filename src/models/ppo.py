@@ -1,13 +1,14 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.distributions import Categorical
 
-from constants import MODEL_SAVE_NAME, TARGET_MODEL_SAVE_NAME
+from src.constants import MODEL_SAVE_NAME, PPO_MODEL_SAVE_NAME, TARGET_MODEL_SAVE_NAME
 
 
-class DQN(nn.Module):
+class PPO(nn.Module):
     def __init__(self, input_shape, n_actions):
-        super(DQN, self).__init__()
+        super(PPO, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
             nn.ReLU(),
@@ -18,8 +19,11 @@ class DQN(nn.Module):
         )
 
         conv_out_size = self._get_conv_out(input_shape)
-        self.fc = nn.Sequential(
+        self.actor = nn.Sequential(
             nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, n_actions)
+        )
+        self.critic = nn.Sequential(
+            nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, 1)
         )
 
     def _get_conv_out(self, shape):
@@ -28,12 +32,10 @@ class DQN(nn.Module):
 
     def forward(self, x):
         conv_out = self.conv(x).view(x.size()[0], -1)
-        return self.fc(conv_out)
+        return Categorical(logits=self.actor(conv_out)), self.critic(conv_out)
+    
+    def save(self):
+        torch.save(self.state_dict(), PPO_MODEL_SAVE_NAME)
 
-    def save(self, target=False):
-        name = TARGET_MODEL_SAVE_NAME if target else MODEL_SAVE_NAME
-        torch.save(self.state_dict(), name)
-
-    def load(self, device, target=False):
-        name = TARGET_MODEL_SAVE_NAME if target else MODEL_SAVE_NAME
-        self.load_state_dict(torch.load(name, map_location=torch.device(device)))
+    def load(self, device):
+        self.load_state_dict(torch.load(PPO_MODEL_SAVE_NAME, map_location=torch.device(device)))

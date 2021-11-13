@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+from model import DQN
 
 from constants import (
     BATCH_SIZE,
@@ -9,7 +10,6 @@ from constants import (
     GAMMA,
     MIN_EPSILON,
 )
-from model import DQN
 from replay_buffer import ReplyBuffer
 
 

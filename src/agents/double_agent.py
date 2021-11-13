@@ -4,7 +4,7 @@ import random
 import torch
 from torch import nn
 
-from constants import (
+from src.constants import (
     BATCH_SIZE,
     COPY_STEPS,
     ENDING_POSISTION_PICKLE,
@@ -17,8 +17,8 @@ from constants import (
     NUM_IN_QUEUE_PICKLE,
     TOTAL_REWARDS_PICKLE,
 )
-from model import DQN
-from replay_buffer import ReplyBuffer
+from src.models.dqn import DQN
+from src.replay_buffer import ReplyBuffer
 
 
 class DoubleDQNAgent:

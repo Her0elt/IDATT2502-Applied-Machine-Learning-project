@@ -2,7 +2,7 @@ import random
 
 import torch
 
-from constants import (
+from src.constants import (
     ACTION_SAVE_NAME,
     DONE_SAVE_NAME,
     NEXT_STATE_SAVE_NAME,
