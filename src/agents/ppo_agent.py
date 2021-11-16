@@ -1,9 +1,15 @@
 import numpy as np
 import torch
 from torch import nn
-from tqdm import tqdm
 
-from src.constants import ACTOR_LEARNING_RATE, CLIP_RANGE, CRITIC_LEARNING_RATE, OPTIMIZER_EPSILON, STEP_AMOUNT, UPDATE_FREQUENCY
+from src.constants import (
+    ACTOR_LEARNING_RATE,
+    CLIP_RANGE,
+    CRITIC_LEARNING_RATE,
+    OPTIMIZER_EPSILON,
+    STEP_AMOUNT,
+    UPDATE_FREQUENCY,
+)
 from src.models.ppo import PPO
 
 
@@ -27,12 +33,18 @@ class PPOAgent:
 
     def save(self):
         self.policy.save()
-    
+
     def load(self):
-        self.policy.load()
+        self.policy.load(device=self.device)
         self.policy_old.load_state_dict(self.policy.state_dict())
 
-    
+    def play(self, state):
+        pi, _ = self.policy(
+            torch.tensor(state, dtype=torch.float32, device=self.device).unsqueeze(0)
+        )
+        action = pi.sample()
+        return action
+
     def act(self, state):
         with torch.no_grad():
             pi, v = self.policy(
@@ -47,14 +59,26 @@ class PPOAgent:
     def calculate_advantages(self, rewards, dones, values):
         returns = []
         gae = 0
-        values = values.numpy()
+        npValues = values.cpu().numpy()
         for i in reversed(range(len(rewards))):
             mask = 1.0 - int(dones[i])
-            delta = rewards[i] + self.gamma * values[i + 1] * mask - values[i]
+            delta = (
+                rewards.cpu().numpy()[i]
+                + self.gamma * npValues[i + 1] * mask
+                - npValues[i]
+            )
             gae = delta + self.gamma * self.lamda * mask * gae
-            returns.insert(0, gae + values[i])
-        adv = np.array(returns) - values[:-1]
-        return torch.tensor(returns, device=self.device, dtype=torch.float32), torch.tensor((adv - np.mean(adv)) / (np.std(adv) + 1e-8),device = self.device, dtype=torch.float32)
+            returns.insert(0, gae + npValues[i])
+        returns = np.array(returns)
+        adv = returns - npValues[:-1]
+        return (
+            torch.tensor(returns, device=self.device, dtype=torch.float32),
+            torch.tensor(
+                (adv - np.mean(adv)) / (np.std(adv) + 1e-8),
+                device=self.device,
+                dtype=torch.float32,
+            ),
+        )
 
     def calculate_loss(self, states, actions, prev_log_probs, returns, advantages):
         pi, value = self.policy(states)
@@ -69,8 +93,9 @@ class PPOAgent:
     def train(self, states, actions, rewards, dones, prev_log_probs, values):
         returns, advantages = self.calculate_advantages(rewards, dones, values)
         indexes = torch.randperm(STEP_AMOUNT)
-        for batch_start in tqdm(range(0, STEP_AMOUNT, UPDATE_FREQUENCY)):
-            batch_end = batch_start + UPDATE_FREQUENCY
+        step_amount = STEP_AMOUNT // UPDATE_FREQUENCY
+        for batch_start in range(0, STEP_AMOUNT, step_amount):
+            batch_end = batch_start + step_amount
             batch_indexes = indexes[batch_start:batch_end]
             for _ in range(self.epochs):
                 loss = self.calculate_loss(
@@ -84,5 +109,3 @@ class PPOAgent:
                 loss.backward()
                 self.optimizer.step()
             self.policy_old.load_state_dict(self.policy.state_dict())
-            
-        

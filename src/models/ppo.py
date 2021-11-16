@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch.distributions import Categorical
 
-from src.constants import MODEL_SAVE_NAME, PPO_MODEL_SAVE_NAME, TARGET_MODEL_SAVE_NAME
+from src.constants import PPO_MODEL_SAVE_NAME
 
 
 class PPO(nn.Module):
@@ -33,9 +33,11 @@ class PPO(nn.Module):
     def forward(self, x):
         conv_out = self.conv(x).view(x.size()[0], -1)
         return Categorical(logits=self.actor(conv_out)), self.critic(conv_out)
-    
+
     def save(self):
         torch.save(self.state_dict(), PPO_MODEL_SAVE_NAME)
 
     def load(self, device):
-        self.load_state_dict(torch.load(PPO_MODEL_SAVE_NAME, map_location=torch.device(device)))
+        self.load_state_dict(
+            torch.load(PPO_MODEL_SAVE_NAME, map_location=torch.device(device))
+        )
