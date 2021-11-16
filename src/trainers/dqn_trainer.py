@@ -9,16 +9,14 @@ from src.constants import EPISODES
 from src.environment import create_mario_env
 
 
-def run(training_mode, pretrained, num_episodes=EPISODES):
+def run(pretrained, num_episodes=EPISODES):
 
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
+    agent = DoubleDQNAgent(env, state_space, action_space)
     if pretrained:
-        agent = DoubleDQNAgent(env, state_space, action_space, memory_size=0)
         agent.load()
-    else:
-        agent = DoubleDQNAgent(env, state_space, action_space)
 
     total_rewards = []
 
@@ -38,9 +36,8 @@ def run(training_mode, pretrained, num_episodes=EPISODES):
 
             done = torch.tensor(np.array([int(done)])).unsqueeze(0)
 
-            if training_mode:
-                agent.remember(state, action, reward, state_next, done)
-                agent.replay()
+            agent.remember(state, action, reward, state_next, done)
+            agent.replay()
 
             state = state_next
             if done:

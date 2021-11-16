@@ -1,23 +1,58 @@
 import time
 
+import wandb
+
 import numpy as np
 import torch
 from tqdm import tqdm
 
 from src.agents.ppo_agent import PPOAgent
-from src.constants import CHECKPOINT_AMOUNT, EPISODES, STEP_AMOUNT
+from src.constants import (
+    ACTOR_LEARNING_RATE,
+    CHECKPOINT_AMOUNT,
+    CLIP_RANGE,
+    CRITIC_LEARNING_RATE,
+    EPISODES,
+    OPTIMIZER_EPSILON,
+    STEP_AMOUNT,
+    UPDATE_FREQUENCY,
+    PPO_GAMMA,
+    PPO_LAMBDA,
+    PPO_EPOCHS,
+    MIN_WANDB_VIDEO_REWARD,
+)
 from src.environment import create_mario_env
 
 
-def run(training_mode, pretrained, num_episodes=EPISODES):
+def run(pretrained, num_episodes=EPISODES, name=None):
+
+    if name:
+        wandb.init(project="super-mario-ppo", name=name, config={
+            'ACTOR_LEARNING_RATE': ACTOR_LEARNING_RATE,
+            'CLIP_RANGE': CLIP_RANGE,
+            'CRITIC_LEARNING_RATE': CRITIC_LEARNING_RATE,
+            'OPTIMIZER_EPSILON': OPTIMIZER_EPSILON,
+            'STEP_AMOUNT': STEP_AMOUNT,
+            'UPDATE_FREQUENCY': UPDATE_FREQUENCY,
+            'EPISODES': num_episodes,
+            'PPO_GAMMA': PPO_GAMMA,
+            'PPO_LAMBDA': PPO_LAMBDA,
+            'PPO_EPOCHS': PPO_EPOCHS,
+        })
+
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
     agent = PPOAgent(state_space, action_space)
-    agent.load()
+    if pretrained:
+        agent.load()
     episodic_reward = []
     play_episode = 1
+    max_episode_reward = 0
     for ep_num in tqdm(range(num_episodes)):
+        frames = []
+        # frames.append(env.frame)
+
         total_reward = []
         states = np.zeros((STEP_AMOUNT, 4, 84, 84), dtype=np.float32)
         actions = np.zeros(STEP_AMOUNT, dtype=np.int32)
@@ -31,6 +66,7 @@ def run(training_mode, pretrained, num_episodes=EPISODES):
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
             state, rewards[step], dones[step], info = env.step(actions[step])
             # env.render()
+            frames.append(state)
             episodic_reward.append(rewards[step])
             if dones[step]:
                 total_reward.append(np.sum(episodic_reward))
@@ -58,6 +94,22 @@ def run(training_mode, pretrained, num_episodes=EPISODES):
                 play_episode, np.mean(total_reward)
             )
         )
+        if name:
+            wandb.log(
+                {
+                    "total_reward": total_reward,
+                    "avg_reward": np.mean(total_reward),
+                },
+                step=play_episode,
+            )
+
+        mean_episode_reward = np.mean(total_reward)
+
+        if mean_episode_reward > max_episode_reward:
+            max_episode_reward = mean_episode_reward
+            if mean_episode_reward > MIN_WANDB_VIDEO_REWARD and name:
+                movie = np.stack(frames, 0)
+                wandb.log({'episode': play_episode, 'mean_episode_reward': mean_episode_reward, 'test_video': wandb.Video(movie.transpose(0, 3, 1, 2), str(mean_episode_reward), fps=25, format='mp4')})
 
 
 def to_tensor(list):

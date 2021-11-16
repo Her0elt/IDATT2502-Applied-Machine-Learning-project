@@ -9,15 +9,18 @@ from src.constants import (
     OPTIMIZER_EPSILON,
     STEP_AMOUNT,
     UPDATE_FREQUENCY,
+    PPO_GAMMA,
+    PPO_LAMBDA,
+    PPO_EPOCHS,
 )
 from src.models.ppo import PPO
 
 
 class PPOAgent:
     def __init__(self, state_shape, action_shape):
-        self.gamma = 0.95
-        self.lamda = 0.95
-        self.epochs = 30
+        self.gamma = PPO_GAMMA
+        self.lamda = PPO_LAMBDA
+        self.epochs = PPO_EPOCHS
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.policy = PPO(state_shape, action_shape).to(self.device)
         self.policy_old = PPO(state_shape, action_shape).to(self.device)
