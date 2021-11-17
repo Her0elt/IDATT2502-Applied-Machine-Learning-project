@@ -3,31 +3,31 @@ import time
 import numpy as np
 import torch
 from tqdm import tqdm
-import wandb
 
+import wandb
 from src.agents.double_agent import DoubleDQNAgent
 from src.constants import (
-    EPISODES,
-    WANDB_ENTITY,
-    WANDB_DDQN_PROJECT,
-    MIN_WANDB_VIDEO_REWARD,
     BATCH_SIZE,
     COPY_STEPS,
     ENDING_POSISTION_PICKLE,
+    EPISODES,
     EPSILON,
     EPSILON_DECAY_RATE,
     GAMMA,
     LEARNING_RATE,
     MEMORY_SIZE,
     MIN_EPSILON,
+    MIN_WANDB_VIDEO_REWARD,
     NUM_IN_QUEUE_PICKLE,
     TOTAL_REWARDS_PICKLE,
+    WANDB_DDQN_PROJECT,
+    WANDB_ENTITY,
 )
 from src.environment import create_mario_env
 
 
 def run(pretrained, num_episodes=EPISODES, wandb_name=None):
-  
+
     should_log = bool(wandb_name)
 
     if should_log:

@@ -3,8 +3,8 @@ import time
 import numpy as np
 import torch
 from tqdm import tqdm
-import wandb
 
+import wandb
 from src.agents.ppo_agent import PPOAgent
 from src.constants import (
     ACTOR_LEARNING_RATE,
@@ -124,7 +124,9 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
             agent.save()
 
         tqdm.write(
-            "Mean total reward after episode {} is {}".format(ep_num, np.mean(total_reward))
+            "Mean total reward after episode {} is {}".format(
+                ep_num, np.mean(total_reward)
+            )
         )
 
 

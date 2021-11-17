@@ -28,7 +28,7 @@ class MaxAndSkipEnv(gym.Wrapper):
             if done:
                 break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
-        # Save the original state to allow fetching when creating video 
+        # Save the original state to allow fetching when creating video
         self.frame = max_frame.copy()
         return max_frame, total_reward, done, info
 
