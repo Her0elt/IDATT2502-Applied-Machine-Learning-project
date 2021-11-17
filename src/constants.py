@@ -31,7 +31,7 @@ ENV_WIDTH = 84
 WANDB_ENTITY = "idatt2502-project"
 WANDB_PPO_PROJECT = "super-mario-ppo"
 WANDB_DDQN_PROJECT = "super-mario-ddqn"
-MIN_WANDB_VIDEO_REWARD = 10
+MIN_WANDB_VIDEO_REWARD = 1000
 
 MODEL_SAVE_DIR = "trained_models"
 
