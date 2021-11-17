@@ -7,7 +7,7 @@ import numpy as np
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
-from src.constants import ENV_HEIGHT, ENV_WIDTH, SKIP_AND_STACK_AMOUNT, WOLRD
+from src.constants import ENV_HEIGHT, ENV_WIDTH, SKIP_AND_STACK_AMOUNT, WORLD
 
 
 class MaxAndSkipEnv(gym.Wrapper):
@@ -28,6 +28,7 @@ class MaxAndSkipEnv(gym.Wrapper):
             if done:
                 break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
+        self.frame = max_frame.copy()
         return max_frame, total_reward, done, info
 
     def reset(self):
@@ -112,7 +113,7 @@ class BufferWrapper(gym.ObservationWrapper):
 
 
 def create_mario_env():
-    env = gym_super_mario_bros.make(WOLRD)
+    env = gym_super_mario_bros.make(WORLD)
     env = MaxAndSkipEnv(env)
     env = ProcessFrame84(env)
     env = ImageToPyTorch(env)

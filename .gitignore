@@ -4,3 +4,7 @@ questions.md
 memory/
 pickle/
 saved/
+
+# Logging
+video/
+wandb/

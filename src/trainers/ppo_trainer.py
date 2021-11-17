@@ -26,8 +26,10 @@ from src.environment import create_mario_env
 
 def run(pretrained, num_episodes=EPISODES, name=None):
 
-    if name:
-        wandb.init(project="super-mario-ppo", name=name, config={
+    should_log = bool(name)
+
+    if should_log:
+        wandb.init(project="super-mario-ppo", name=name, entity="idatt2502-project", monitor_gym=False, config={
             'ACTOR_LEARNING_RATE': ACTOR_LEARNING_RATE,
             'CLIP_RANGE': CLIP_RANGE,
             'CRITIC_LEARNING_RATE': CRITIC_LEARNING_RATE,
@@ -46,14 +48,12 @@ def run(pretrained, num_episodes=EPISODES, name=None):
     agent = PPOAgent(state_space, action_space)
     if pretrained:
         agent.load()
-    episodic_reward = []
-    play_episode = 1
+    episodic_reward = np.array([])
     max_episode_reward = 0
+    play_episode = 0
     for ep_num in tqdm(range(num_episodes)):
+        total_reward = np.array([])
         frames = []
-        # frames.append(env.frame)
-
-        total_reward = []
         states = np.zeros((STEP_AMOUNT, 4, 84, 84), dtype=np.float32)
         actions = np.zeros(STEP_AMOUNT, dtype=np.int32)
         rewards = np.zeros(STEP_AMOUNT, dtype=np.float32)
@@ -65,14 +65,24 @@ def run(pretrained, num_episodes=EPISODES, name=None):
             states[step] = state
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
             state, rewards[step], dones[step], info = env.step(actions[step])
-            # env.render()
-            frames.append(state)
-            episodic_reward.append(rewards[step])
+            frames.append(env.frame)
+            episodic_reward = np.append(episodic_reward, rewards[step])
             if dones[step]:
-                total_reward.append(np.sum(episodic_reward))
+                total_episode_reward = np.sum(episodic_reward)
+                total_reward = np.append(total_reward, total_episode_reward)
+
+                if total_episode_reward > max_episode_reward:
+                    max_episode_reward = total_episode_reward
+                    if should_log and total_episode_reward > MIN_WANDB_VIDEO_REWARD:
+                        wandb.log({ 'video': wandb.Video(np.stack(frames, 0).transpose(0, 3, 1, 2), str(total_episode_reward), fps=25, format='mp4')})
+                if should_log:
+                    wandb.log({ 'mean_last_10': np.mean(np.array(total_reward[-10:])), "episode_reward": np.sum(episodic_reward) }, step=play_episode)
+
                 episodic_reward = []
                 play_episode += 1
+                frames = []
                 env.reset()
+        
         # adds the an extra value so you can calculate advantages with
         # rewards[i] + self.gamma * values[i + 1] * mask - values[i]
         _, last_value, _ = agent.act(state)
@@ -91,26 +101,9 @@ def run(pretrained, num_episodes=EPISODES, name=None):
 
         tqdm.write(
             "Total reward after episode {} is {}".format(
-                play_episode, np.mean(total_reward)
+                ep_num, np.mean(total_reward)
             )
         )
-        if name:
-            wandb.log(
-                {
-                    "total_reward": total_reward,
-                    "avg_reward": np.mean(total_reward),
-                },
-                step=play_episode,
-            )
-
-        mean_episode_reward = np.mean(total_reward)
-
-        if mean_episode_reward > max_episode_reward:
-            max_episode_reward = mean_episode_reward
-            if mean_episode_reward > MIN_WANDB_VIDEO_REWARD and name:
-                movie = np.stack(frames, 0)
-                wandb.log({'episode': play_episode, 'mean_episode_reward': mean_episode_reward, 'test_video': wandb.Video(movie.transpose(0, 3, 1, 2), str(mean_episode_reward), fps=25, format='mp4')})
-
 
 def to_tensor(list):
     list = torch.tensor(list, device="cuda" if torch.cuda.is_available() else "cpu")

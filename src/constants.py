@@ -51,5 +51,5 @@ TOTAL_REWARDS_PICKLE = f"{PICKLE_FOLDER_NAME}/total_rewards.pkl"
 NUM_IN_QUEUE_PICKLE = f"{PICKLE_FOLDER_NAME}/num_in_queue.pkl"
 ENDING_POSISTION_PICKLE = f"{PICKLE_FOLDER_NAME}/ending_position.pkl"
 
-WOLRD = "SuperMarioBros-1-1-v0"
+WORLD = "SuperMarioBros-1-1-v0"
 EPISODES = 3000
