@@ -1,11 +1,10 @@
 import time
 
-import wandb
-
 import numpy as np
 import torch
 from tqdm import tqdm
 
+import wandb
 from src.agents.ppo_agent import PPOAgent
 from src.constants import (
     ACTOR_LEARNING_RATE,
@@ -13,13 +12,13 @@ from src.constants import (
     CLIP_RANGE,
     CRITIC_LEARNING_RATE,
     EPISODES,
+    MIN_WANDB_VIDEO_REWARD,
     OPTIMIZER_EPSILON,
-    STEP_AMOUNT,
-    UPDATE_FREQUENCY,
+    PPO_EPOCHS,
     PPO_GAMMA,
     PPO_LAMBDA,
-    PPO_EPOCHS,
-    MIN_WANDB_VIDEO_REWARD,
+    STEP_AMOUNT,
+    UPDATE_FREQUENCY,
 )
 from src.environment import create_mario_env
 
@@ -29,18 +28,24 @@ def run(pretrained, num_episodes=EPISODES, name=None):
     should_log = bool(name)
 
     if should_log:
-        wandb.init(project="super-mario-ppo", name=name, entity="idatt2502-project", monitor_gym=False, config={
-            'ACTOR_LEARNING_RATE': ACTOR_LEARNING_RATE,
-            'CLIP_RANGE': CLIP_RANGE,
-            'CRITIC_LEARNING_RATE': CRITIC_LEARNING_RATE,
-            'OPTIMIZER_EPSILON': OPTIMIZER_EPSILON,
-            'STEP_AMOUNT': STEP_AMOUNT,
-            'UPDATE_FREQUENCY': UPDATE_FREQUENCY,
-            'EPISODES': num_episodes,
-            'PPO_GAMMA': PPO_GAMMA,
-            'PPO_LAMBDA': PPO_LAMBDA,
-            'PPO_EPOCHS': PPO_EPOCHS,
-        })
+        wandb.init(
+            project="super-mario-ppo",
+            name=name,
+            entity="idatt2502-project",
+            monitor_gym=False,
+            config={
+                "ACTOR_LEARNING_RATE": ACTOR_LEARNING_RATE,
+                "CLIP_RANGE": CLIP_RANGE,
+                "CRITIC_LEARNING_RATE": CRITIC_LEARNING_RATE,
+                "OPTIMIZER_EPSILON": OPTIMIZER_EPSILON,
+                "STEP_AMOUNT": STEP_AMOUNT,
+                "UPDATE_FREQUENCY": UPDATE_FREQUENCY,
+                "EPISODES": num_episodes,
+                "PPO_GAMMA": PPO_GAMMA,
+                "PPO_LAMBDA": PPO_LAMBDA,
+                "PPO_EPOCHS": PPO_EPOCHS,
+            },
+        )
 
     env = create_mario_env()
     state_space = env.observation_space.shape
@@ -74,15 +79,30 @@ def run(pretrained, num_episodes=EPISODES, name=None):
                 if total_episode_reward > max_episode_reward:
                     max_episode_reward = total_episode_reward
                     if should_log and total_episode_reward > MIN_WANDB_VIDEO_REWARD:
-                        wandb.log({ 'video': wandb.Video(np.stack(frames, 0).transpose(0, 3, 1, 2), str(total_episode_reward), fps=25, format='mp4')})
+                        wandb.log(
+                            {
+                                "video": wandb.Video(
+                                    np.stack(frames, 0).transpose(0, 3, 1, 2),
+                                    str(total_episode_reward),
+                                    fps=25,
+                                    format="mp4",
+                                )
+                            }
+                        )
                 if should_log:
-                    wandb.log({ 'mean_last_10': np.mean(np.array(total_reward[-10:])), "episode_reward": np.sum(episodic_reward) }, step=play_episode)
+                    wandb.log(
+                        {
+                            "mean_last_10": np.mean(np.array(total_reward[-10:])),
+                            "episode_reward": np.sum(episodic_reward),
+                        },
+                        step=play_episode,
+                    )
 
                 episodic_reward = []
                 play_episode += 1
                 frames = []
                 env.reset()
-        
+
         # adds the an extra value so you can calculate advantages with
         # rewards[i] + self.gamma * values[i + 1] * mask - values[i]
         _, last_value, _ = agent.act(state)
@@ -100,10 +120,9 @@ def run(pretrained, num_episodes=EPISODES, name=None):
             agent.save()
 
         tqdm.write(
-            "Total reward after episode {} is {}".format(
-                ep_num, np.mean(total_reward)
-            )
+            "Total reward after episode {} is {}".format(ep_num, np.mean(total_reward))
         )
+
 
 def to_tensor(list):
     list = torch.tensor(list, device="cuda" if torch.cuda.is_available() else "cpu")

@@ -7,11 +7,11 @@ from src.constants import (
     CLIP_RANGE,
     CRITIC_LEARNING_RATE,
     OPTIMIZER_EPSILON,
-    STEP_AMOUNT,
-    UPDATE_FREQUENCY,
+    PPO_EPOCHS,
     PPO_GAMMA,
     PPO_LAMBDA,
-    PPO_EPOCHS,
+    STEP_AMOUNT,
+    UPDATE_FREQUENCY,
 )
 from src.models.ppo import PPO
 
