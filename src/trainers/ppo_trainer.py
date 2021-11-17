@@ -3,8 +3,8 @@ import time
 import numpy as np
 import torch
 from tqdm import tqdm
-
 import wandb
+
 from src.agents.ppo_agent import PPOAgent
 from src.constants import (
     ACTOR_LEARNING_RATE,
@@ -19,20 +19,21 @@ from src.constants import (
     PPO_LAMBDA,
     STEP_AMOUNT,
     UPDATE_FREQUENCY,
+    WANDB_ENTITY,
+    WANDB_PPO_PROJECT,
 )
 from src.environment import create_mario_env
 
 
-def run(pretrained, num_episodes=EPISODES, name=None):
+def run(pretrained, num_episodes=EPISODES, wandb_name=None):
 
-    should_log = bool(name)
+    should_log = bool(wandb_name)
 
     if should_log:
         wandb.init(
-            project="super-mario-ppo",
-            name=name,
-            entity="idatt2502-project",
-            monitor_gym=False,
+            project=WANDB_PPO_PROJECT,
+            name=wandb_name,
+            entity=WANDB_ENTITY,
             config={
                 "ACTOR_LEARNING_RATE": ACTOR_LEARNING_RATE,
                 "CLIP_RANGE": CLIP_RANGE,
@@ -55,7 +56,8 @@ def run(pretrained, num_episodes=EPISODES, name=None):
         agent.load()
     episodic_reward = np.array([])
     max_episode_reward = 0
-    play_episode = 0
+    play_episode = 1
+
     for ep_num in tqdm(range(num_episodes)):
         total_reward = np.array([])
         frames = []
@@ -66,6 +68,7 @@ def run(pretrained, num_episodes=EPISODES, name=None):
         prev_log_probs = np.zeros(STEP_AMOUNT, dtype=np.float32)
         values = np.zeros(STEP_AMOUNT, dtype=np.float32)
         state = env.reset()
+
         for step in range(STEP_AMOUNT):
             states[step] = state
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
@@ -89,10 +92,11 @@ def run(pretrained, num_episodes=EPISODES, name=None):
                                 )
                             }
                         )
+
                 if should_log:
                     wandb.log(
                         {
-                            "mean_last_10": np.mean(np.array(total_reward[-10:])),
+                            "mean_last_10_episodes": np.mean(total_reward[-10:]),
                             "episode_reward": np.sum(episodic_reward),
                         },
                         step=play_episode,
@@ -103,7 +107,7 @@ def run(pretrained, num_episodes=EPISODES, name=None):
                 frames = []
                 env.reset()
 
-        # adds the an extra value so you can calculate advantages with
+        # Adds the an extra value so you can calculate advantages with
         # rewards[i] + self.gamma * values[i + 1] * mask - values[i]
         _, last_value, _ = agent.act(state)
         values = np.append(values, last_value)
@@ -120,7 +124,7 @@ def run(pretrained, num_episodes=EPISODES, name=None):
             agent.save()
 
         tqdm.write(
-            "Total reward after episode {} is {}".format(ep_num, np.mean(total_reward))
+            "Mean total reward after episode {} is {}".format(ep_num, np.mean(total_reward))
         )
 
 
