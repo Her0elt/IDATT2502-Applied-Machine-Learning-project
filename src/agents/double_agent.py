@@ -125,7 +125,7 @@ class DoubleDQNAgent:
         if self.step % self.copy == 0:
             self.copy_weights()
 
-        if self.memory_size > self.num_in_queue:
+        if self.batch_size > self.num_in_queue:
             return
 
         state, action, reward, next_sates, done = self.memory.recall(
@@ -136,4 +136,3 @@ class DoubleDQNAgent:
         loss = self.loss_func(current, target)
         loss.backward()
         self.optimizer.step()
-        self.update_epsilon()

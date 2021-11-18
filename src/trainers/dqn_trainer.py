@@ -103,10 +103,13 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
                         {
                             "mean_last_10_episodes": np.mean(total_rewards[-10:]),
                             "episode_reward": np.sum(total_reward),
+                            "epsilon": agent.epsilon,
                         },
                         step=ep_num,
                     )
                 break
+
+            agent.update_epsilon()
 
         total_rewards.append(total_reward)
 
