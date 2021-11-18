@@ -1,6 +1,8 @@
 import pickle
 import random
+from collections import deque
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -15,6 +17,7 @@ from src.constants import (
     MEMORY_SIZE,
     MIN_EPSILON,
     NUM_IN_QUEUE_PICKLE,
+    OPTIMIZER_EPSILON,
     TOTAL_REWARDS_PICKLE,
 )
 from src.models.dqn import DQN
@@ -53,7 +56,9 @@ class DoubleDQNAgent:
         self.ending_position = 0
         self.num_in_queue = 0
         self.loss_func = nn.SmoothL1Loss().to(self.device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=LEARNING_RATE, eps=OPTIMIZER_EPSILON
+        )
 
     def load(self):
         self.model.load(self.device)
@@ -78,18 +83,15 @@ class DoubleDQNAgent:
             pickle.dump(total_rewards, f)
 
     def act(self, state):
-        # Epsilon-greedy action
-
-        self.step += 1
-        if random.random() < self.epsilon:
-            return torch.tensor([[random.randrange(self.action_space)]])
+        if np.random.rand() < self.epsilon:
+            action = np.random.randint(self.action_space)
         else:
-            return (
-                torch.argmax(self.model(state.to(self.device)))
-                .unsqueeze(0)
-                .unsqueeze(0)
-                .cpu()
-            )
+            action_values = self.model(torch.tensor(state.__array__()))
+            action = torch.argmax(action_values, dim=1).item()
+        self.epsilon *= self.epsilon_decay_rate
+        self.epsilon = max(self.min_epsilon, self.epsilon)
+        self.step += 1
+        return action
 
     def play(self, state):
         return (
@@ -134,5 +136,6 @@ class DoubleDQNAgent:
         target = self.update_q_values(reward, done, next_sates)
         current = self.model(state).gather(1, action.long())
         loss = self.loss_func(current, target)
+        self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

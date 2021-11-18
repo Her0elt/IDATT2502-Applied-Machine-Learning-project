@@ -71,13 +71,14 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
             action = agent.act(state)
             steps += 1
 
-            state_next, reward, done, info = env.step(int(action[0]))
+            state_next, reward, done, info = env.step(action)
             frames.append(env.frame)
             total_reward += reward
             state_next = torch.Tensor(np.array([state_next]))
             reward = torch.tensor(np.array([reward])).unsqueeze(0)
 
             done = torch.tensor(np.array([int(done)])).unsqueeze(0)
+            action = torch.tensor(np.array([int(action)])).unsqueeze(0)
 
             agent.remember(state, action, reward, state_next, done)
             agent.replay()
