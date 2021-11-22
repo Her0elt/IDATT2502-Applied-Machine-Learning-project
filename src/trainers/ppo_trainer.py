@@ -68,7 +68,6 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
         prev_log_probs = np.zeros(STEP_AMOUNT, dtype=np.float32)
         values = np.zeros(STEP_AMOUNT, dtype=np.float32)
         state = env.reset()
-
         for step in range(STEP_AMOUNT):
             states[step] = state
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
@@ -78,26 +77,30 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
             if dones[step]:
                 total_episode_reward = np.sum(episodic_reward)
                 total_reward = np.append(total_reward, total_episode_reward)
-
                 if total_episode_reward > max_episode_reward:
                     max_episode_reward = total_episode_reward
                     if should_log and total_episode_reward > MIN_WANDB_VIDEO_REWARD:
-                        wandb.log(
-                            {
-                                "video": wandb.Video(
-                                    np.stack(frames, 0).transpose(0, 3, 1, 2),
-                                    str(total_episode_reward),
-                                    fps=25,
-                                    format="mp4",
-                                )
-                            }
-                        )
+                        try:
+
+                            wandb.log(
+                                {
+                                    "video": wandb.Video(
+                                        np.stack(frames, 0).transpose(0, 3, 1, 2),
+                                        str(total_episode_reward),
+                                        fps=25,
+                                        format="mp4",
+                                    )
+                                }
+                            )
+                        except:
+                            tqdm.write("something happend while logging")
 
                 if should_log:
                     wandb.log(
                         {
                             "mean_last_10_episodes": np.mean(total_reward[-10:]),
                             "episode_reward": np.sum(episodic_reward),
+                            "hit_flag": int(info["flag_get"]),
                         },
                         step=play_episode,
                     )

@@ -5,6 +5,7 @@ import torch
 from tqdm import tqdm
 
 import wandb
+from src.agents.agent import DQNAgent
 from src.agents.double_agent import DoubleDQNAgent
 from src.constants import (
     BATCH_SIZE,
@@ -21,18 +22,19 @@ from src.constants import (
     NUM_IN_QUEUE_PICKLE,
     TOTAL_REWARDS_PICKLE,
     WANDB_DDQN_PROJECT,
+    WANDB_DQN_PROJECT,
     WANDB_ENTITY,
 )
 from src.environment import create_mario_env
 
 
-def run(pretrained, num_episodes=EPISODES, wandb_name=None):
+def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
 
     should_log = bool(wandb_name)
 
     if should_log:
         wandb.init(
-            project=WANDB_DDQN_PROJECT,
+            project=WANDB_DDQN_PROJECT if double else WANDB_DQN_PROJECT,
             name=wandb_name,
             entity=WANDB_ENTITY,
             config={
@@ -54,7 +56,11 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
-    agent = DoubleDQNAgent(env, state_space, action_space)
+    agent = (
+        DoubleDQNAgent(env, state_space, action_space)
+        if double
+        else DQNAgent(env, state_space, action_space)
+    )
     if pretrained:
         agent.load()
 
@@ -64,7 +70,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
     for ep_num in tqdm(range(num_episodes)):
         state = env.reset()
         frames = []
-        state = torch.Tensor(np.array([state]))
+        state = torch.tensor(np.array([state]))
         total_reward = 0
         steps = 0
         while True:
@@ -74,7 +80,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
             state_next, reward, done, info = env.step(action)
             frames.append(env.frame)
             total_reward += reward
-            state_next = torch.Tensor(np.array([state_next]))
+            state_next = torch.tensor(np.array([state_next]))
             reward = torch.tensor(np.array([reward])).unsqueeze(0)
 
             done = torch.tensor(np.array([int(done)])).unsqueeze(0)
@@ -86,18 +92,21 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
             state = state_next
             if done:
                 if total_reward > max_episode_reward:
-                    max_episode_reward = total_reward
-                    if should_log and total_reward > MIN_WANDB_VIDEO_REWARD:
-                        wandb.log(
-                            {
-                                "video": wandb.Video(
-                                    np.stack(frames, 0).transpose(0, 3, 1, 2),
-                                    str(total_reward),
-                                    fps=25,
-                                    format="mp4",
-                                )
-                            }
-                        )
+                    try:
+                        max_episode_reward = total_reward
+                        if should_log and total_reward > MIN_WANDB_VIDEO_REWARD:
+                            wandb.log(
+                                {
+                                    "video": wandb.Video(
+                                        np.stack(frames, 0).transpose(0, 3, 1, 2),
+                                        str(total_reward),
+                                        fps=25,
+                                        format="mp4",
+                                    )
+                                }
+                            )
+                    except:
+                        tqdm.write("something happend while logging")
 
                 if should_log:
                     wandb.log(
@@ -105,9 +114,11 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
                             "mean_last_10_episodes": np.mean(total_rewards[-10:]),
                             "episode_reward": np.sum(total_reward),
                             "epsilon": agent.epsilon,
+                            "hit_flag": int(info["flag_get"]),
                         },
                         step=ep_num,
                     )
+
                 break
 
             agent.update_epsilon()
@@ -117,7 +128,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
         tqdm.write(
             "Total reward after episode {} is {}".format(ep_num + 1, total_reward)
         )
-    agent.save()
+    agent.save(total_rewards)
     env.close()
 
 

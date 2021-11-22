@@ -1,10 +1,10 @@
 # DQN/DDQN hyperparams and constants
 EPSILON_DECAY_RATE = 0.99
 MIN_EPSILON = 0.01
-GAMMA = 0.95
+GAMMA = 0.90
 BATCH_SIZE = 32
 LEARNING_RATE = 0.00025
-MEMORY_SIZE = 15000
+MEMORY_SIZE = 20000
 COPY_STEPS = 1e4
 EPSILON = 1
 
@@ -31,6 +31,7 @@ ENV_WIDTH = 84
 WANDB_ENTITY = "idatt2502-project"
 WANDB_PPO_PROJECT = "super-mario-ppo"
 WANDB_DDQN_PROJECT = "super-mario-ddqn"
+WANDB_DQN_PROJECT = "super-mario-dqn"
 MIN_WANDB_VIDEO_REWARD = 1000
 
 MODEL_SAVE_DIR = "trained_models"
@@ -54,4 +55,4 @@ NUM_IN_QUEUE_PICKLE = f"{PICKLE_FOLDER_NAME}/num_in_queue.pkl"
 ENDING_POSISTION_PICKLE = f"{PICKLE_FOLDER_NAME}/ending_position.pkl"
 
 WORLD = "SuperMarioBros-1-1-v0"
-EPISODES = 3000
+EPISODES = 5000

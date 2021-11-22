@@ -86,7 +86,9 @@ class DoubleDQNAgent:
         if np.random.rand() < self.epsilon:
             action = np.random.randint(self.action_space)
         else:
-            action_values = self.model(torch.tensor(state.__array__()))
+            action_values = self.model(
+                torch.tensor(state, dtype=torch.float32, device=self.device)
+            )
             action = torch.argmax(action_values, dim=1).item()
         self.epsilon *= self.epsilon_decay_rate
         self.epsilon = max(self.min_epsilon, self.epsilon)
