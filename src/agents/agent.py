@@ -1,10 +1,8 @@
 import pickle
-import random
 
 import numpy as np
 import torch
 from torch import nn
-from src.models.dqn import DQN
 
 from src.constants import (
     BATCH_SIZE,
@@ -19,6 +17,7 @@ from src.constants import (
     OPTIMIZER_EPSILON,
     TOTAL_REWARDS_PICKLE,
 )
+from src.models.dqn import DQN
 from src.replay_buffer import ReplyBuffer
 
 

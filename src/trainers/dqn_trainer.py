@@ -105,7 +105,7 @@ def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
                                     )
                                 }
                             )
-                    except:
+                    except Exception:
                         tqdm.write("something happend while logging")
 
                 if should_log:
