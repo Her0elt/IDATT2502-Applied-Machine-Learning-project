@@ -25,7 +25,7 @@ class PPOAgent:
         self.policy = PPO(state_shape, action_shape).to(self.device)
         self.policy_old = PPO(state_shape, action_shape).to(self.device)
         self.policy_old.load_state_dict(self.policy.state_dict())
-        self.loss_func = nn.MSELoss()
+        self.loss_func = nn.MSELoss().to(self.device)
         self.optimizer = torch.optim.Adam(
             [
                 {"params": self.policy.actor.parameters(), "lr": ACTOR_LEARNING_RATE},
@@ -89,7 +89,7 @@ class PPOAgent:
         clipped_ratio = ratio.clamp(min=1 - CLIP_RANGE, max=1 + CLIP_RANGE)
         policy_reward = torch.min(ratio * advantages, clipped_ratio * advantages)
         entropy_bonus = pi.entropy()
-        mse_loss = self.loss_func(value, returns.reshape(-1, 1))
+        mse_loss = self.loss_func(value, returns)
         loss = -policy_reward + 0.5 * mse_loss - 0.01 * entropy_bonus
         return loss.mean()
 

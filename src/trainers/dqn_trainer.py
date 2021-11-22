@@ -5,8 +5,8 @@ import torch
 from tqdm import tqdm
 
 import wandb
-from src.agents.agent import DQNAgent
-from src.agents.double_agent import DoubleDQNAgent
+from src.agents.dqn_agent import DQNAgent
+from src.agents.ddqn_agent import DoubleDQNAgent
 from src.constants import (
     BATCH_SIZE,
     COPY_STEPS,
