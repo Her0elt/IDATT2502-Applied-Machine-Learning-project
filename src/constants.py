@@ -1,13 +1,11 @@
 # DQN/DDQN hyperparams and constants
-
-
 EPSILON_DECAY_RATE = 0.99
-MIN_EPSILON = 0.05
+MIN_EPSILON = 0.01
 GAMMA = 0.90
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 LEARNING_RATE = 0.00025
-MEMORY_SIZE = 30000
-COPY_STEPS = 500
+MEMORY_SIZE = 20000
+COPY_STEPS = 1e4
 EPSILON = 1
 
 # PPO hyperparams and constants
@@ -17,6 +15,9 @@ CLIP_RANGE = 0.2
 ACTOR_LEARNING_RATE = 0.00025
 CRITIC_LEARNING_RATE = 0.001
 OPTIMIZER_EPSILON = 1e-4
+PPO_GAMMA = 0.95
+PPO_LAMBDA = 0.95
+PPO_EPOCHS = 30
 
 
 # Env constants
@@ -25,6 +26,13 @@ REPLAY_FRAME_COUNT = 4
 SKIP_AND_STACK_AMOUNT = 4
 ENV_HEIGHT = 84
 ENV_WIDTH = 84
+
+# WandB constants
+WANDB_ENTITY = "idatt2502-project"
+WANDB_PPO_PROJECT = "super-mario-ppo"
+WANDB_DDQN_PROJECT = "super-mario-ddqn"
+WANDB_DQN_PROJECT = "super-mario-dqn"
+MIN_WANDB_VIDEO_REWARD = 1000
 
 MODEL_SAVE_DIR = "trained_models"
 
@@ -46,5 +54,7 @@ TOTAL_REWARDS_PICKLE = f"{PICKLE_FOLDER_NAME}/total_rewards.pkl"
 NUM_IN_QUEUE_PICKLE = f"{PICKLE_FOLDER_NAME}/num_in_queue.pkl"
 ENDING_POSISTION_PICKLE = f"{PICKLE_FOLDER_NAME}/ending_position.pkl"
 
-WOLRD = "SuperMarioBros-1-1-v0"
-EPISODES = 3000
+WORLD = "SuperMarioBros-1-1-v0"
+EPISODES = 5000
+
+AGENT_ACTIONS = [["right"], ["right", "A"]]

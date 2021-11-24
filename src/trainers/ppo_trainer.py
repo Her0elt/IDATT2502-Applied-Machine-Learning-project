@@ -4,21 +4,64 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+import wandb
 from src.agents.ppo_agent import PPOAgent
-from src.constants import CHECKPOINT_AMOUNT, EPISODES, STEP_AMOUNT
+from src.constants import (
+    ACTOR_LEARNING_RATE,
+    CHECKPOINT_AMOUNT,
+    CLIP_RANGE,
+    CRITIC_LEARNING_RATE,
+    EPISODES,
+    MIN_WANDB_VIDEO_REWARD,
+    OPTIMIZER_EPSILON,
+    PPO_EPOCHS,
+    PPO_GAMMA,
+    PPO_LAMBDA,
+    STEP_AMOUNT,
+    UPDATE_FREQUENCY,
+    WANDB_ENTITY,
+    WANDB_PPO_PROJECT,
+)
 from src.environment import create_mario_env
 
 
-def run(training_mode, pretrained, num_episodes=EPISODES):
+def run(pretrained, num_episodes=EPISODES, wandb_name=None):
+
+    should_log = bool(wandb_name)
+
+    if should_log:
+        wandb.init(
+            project=WANDB_PPO_PROJECT,
+            name=wandb_name,
+            entity=WANDB_ENTITY,
+            config={
+                "ACTOR_LEARNING_RATE": ACTOR_LEARNING_RATE,
+                "CLIP_RANGE": CLIP_RANGE,
+                "CRITIC_LEARNING_RATE": CRITIC_LEARNING_RATE,
+                "OPTIMIZER_EPSILON": OPTIMIZER_EPSILON,
+                "STEP_AMOUNT": STEP_AMOUNT,
+                "UPDATE_FREQUENCY": UPDATE_FREQUENCY,
+                "EPISODES": num_episodes,
+                "PPO_GAMMA": PPO_GAMMA,
+                "PPO_LAMBDA": PPO_LAMBDA,
+                "PPO_EPOCHS": PPO_EPOCHS,
+            },
+        )
+
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
     agent = PPOAgent(state_space, action_space)
-    agent.load()
+    flags = []
+    if pretrained:
+        agent.load()
     episodic_reward = []
+    max_episode_reward = 0
     play_episode = 1
+
     for ep_num in tqdm(range(num_episodes)):
         total_reward = []
+        frames = []
         states = np.zeros((STEP_AMOUNT, 4, 84, 84), dtype=np.float32)
         actions = np.zeros(STEP_AMOUNT, dtype=np.int32)
         rewards = np.zeros(STEP_AMOUNT, dtype=np.float32)
@@ -30,17 +73,50 @@ def run(training_mode, pretrained, num_episodes=EPISODES):
             states[step] = state
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
             state, rewards[step], dones[step], info = env.step(actions[step])
-            # env.render()
+            frames.append(env.frame)
             episodic_reward.append(rewards[step])
             if dones[step]:
-                total_reward.append(np.sum(episodic_reward))
+                flags.append(int(info["flag_get"]))
+                total_episode_reward = np.sum(episodic_reward)
+                total_reward.append(total_episode_reward)
+                if total_episode_reward > max_episode_reward:
+                    max_episode_reward = total_episode_reward
+                    if should_log and total_episode_reward > MIN_WANDB_VIDEO_REWARD:
+                        try:
+
+                            wandb.log(
+                                {
+                                    "video": wandb.Video(
+                                        np.stack(frames, 0).transpose(0, 3, 1, 2),
+                                        str(total_episode_reward),
+                                        fps=25,
+                                        format="mp4",
+                                    )
+                                }
+                            )
+                        except Exception:
+                            tqdm.write("something happend while logging")
+
+                if should_log:
+                    wandb.log(
+                        {
+                            "mean_last_10_episodes": np.mean(total_reward[-10:]),
+                            "episode_reward": np.sum(total_episode_reward),
+                            "nr_found_flag_last_10": np.sum(flags[-10:]),
+                        },
+                        step=play_episode,
+                    )
+
                 episodic_reward = []
                 play_episode += 1
+                frames = []
                 env.reset()
-        # adds the an extra value so you can calculate advantages with
+
+        # Adds the an extra value so you can calculate advantages with
         # rewards[i] + self.gamma * values[i + 1] * mask - values[i]
         _, last_value, _ = agent.act(state)
         values = np.append(values, last_value)
+        states = torch.tensor(states.reshape(states.shape[0], *states.shape[1:]))
         agent.train(
             to_tensor(states),
             to_tensor(actions),
@@ -54,8 +130,8 @@ def run(training_mode, pretrained, num_episodes=EPISODES):
             agent.save()
 
         tqdm.write(
-            "Total reward after episode {} is {}".format(
-                play_episode, np.mean(total_reward)
+            "Mean total reward after episode {} is {}".format(
+                ep_num, np.mean(total_reward)
             )
         )
 

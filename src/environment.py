@@ -4,10 +4,16 @@ import cv2
 import gym
 import gym_super_mario_bros
 import numpy as np
-from gym_super_mario_bros.actions import RIGHT_ONLY
+import torch
 from nes_py.wrappers import JoypadSpace
 
-from src.constants import ENV_HEIGHT, ENV_WIDTH, SKIP_AND_STACK_AMOUNT, WOLRD
+from src.constants import (
+    AGENT_ACTIONS,
+    ENV_HEIGHT,
+    ENV_WIDTH,
+    SKIP_AND_STACK_AMOUNT,
+    WORLD,
+)
 
 
 class MaxAndSkipEnv(gym.Wrapper):
@@ -28,6 +34,8 @@ class MaxAndSkipEnv(gym.Wrapper):
             if done:
                 break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
+        # Save the original state to allow fetching when creating video
+        self.frame = max_frame.copy()
         return max_frame, total_reward, done, info
 
     def reset(self):
@@ -112,10 +120,15 @@ class BufferWrapper(gym.ObservationWrapper):
 
 
 def create_mario_env():
-    env = gym_super_mario_bros.make(WOLRD)
+    env = gym_super_mario_bros.make(WORLD)
     env = MaxAndSkipEnv(env)
     env = ProcessFrame84(env)
     env = ImageToPyTorch(env)
     env = BufferWrapper(env, 4)
     env = ScaledFloatFrame(env)
-    return JoypadSpace(env, RIGHT_ONLY)
+    env.seed(42)
+    env.action_space.seed(42)
+    torch.manual_seed(42)
+    torch.random.manual_seed(42)
+    np.random.seed(42)
+    return JoypadSpace(env, AGENT_ACTIONS)

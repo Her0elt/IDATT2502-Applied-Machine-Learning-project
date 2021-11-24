@@ -16,6 +16,7 @@ class PPO(nn.Module):
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
+            nn.Flatten(),
         )
 
         conv_out_size = self._get_conv_out(input_shape)
@@ -32,7 +33,10 @@ class PPO(nn.Module):
 
     def forward(self, x):
         conv_out = self.conv(x).view(x.size()[0], -1)
-        return Categorical(logits=self.actor(conv_out)), self.critic(conv_out)
+        return (
+            Categorical(logits=self.actor(conv_out)),
+            self.critic(conv_out).reshape(-1),
+        )
 
     def save(self):
         torch.save(self.state_dict(), PPO_MODEL_SAVE_NAME)
