@@ -56,3 +56,5 @@ ENDING_POSISTION_PICKLE = f"{PICKLE_FOLDER_NAME}/ending_position.pkl"
 
 WORLD = "SuperMarioBros-1-1-v0"
 EPISODES = 5000
+
+AGENT_ACTIONS = [["right"], ["right", "A"]]

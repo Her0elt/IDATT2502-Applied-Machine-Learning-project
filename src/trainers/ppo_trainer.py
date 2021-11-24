@@ -52,14 +52,15 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
     state_space = env.observation_space.shape
     action_space = env.action_space.n
     agent = PPOAgent(state_space, action_space)
+    flags = []
     if pretrained:
         agent.load()
-    episodic_reward = np.array([])
+    episodic_reward = []
     max_episode_reward = 0
     play_episode = 1
 
     for ep_num in tqdm(range(num_episodes)):
-        total_reward = np.array([])
+        total_reward = []
         frames = []
         states = np.zeros((STEP_AMOUNT, 4, 84, 84), dtype=np.float32)
         actions = np.zeros(STEP_AMOUNT, dtype=np.int32)
@@ -73,10 +74,11 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
             state, rewards[step], dones[step], info = env.step(actions[step])
             frames.append(env.frame)
-            episodic_reward = np.append(episodic_reward, rewards[step])
+            episodic_reward.append(rewards[step])
             if dones[step]:
+                flags.append(int(info["flag_get"]))
                 total_episode_reward = np.sum(episodic_reward)
-                total_reward = np.append(total_reward, total_episode_reward)
+                total_reward.append(total_episode_reward)
                 if total_episode_reward > max_episode_reward:
                     max_episode_reward = total_episode_reward
                     if should_log and total_episode_reward > MIN_WANDB_VIDEO_REWARD:
@@ -99,8 +101,8 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
                     wandb.log(
                         {
                             "mean_last_10_episodes": np.mean(total_reward[-10:]),
-                            "episode_reward": np.sum(episodic_reward),
-                            "hit_flag": int(info["flag_get"]),
+                            "episode_reward": np.sum(total_episode_reward),
+                            "nr_found_flag_last_10": np.sum(flags[-10:]),
                         },
                         step=play_episode,
                     )
@@ -114,6 +116,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
         # rewards[i] + self.gamma * values[i + 1] * mask - values[i]
         _, last_value, _ = agent.act(state)
         values = np.append(values, last_value)
+        states = torch.tensor(states.reshape(states.shape[0], *states.shape[1:]))
         agent.train(
             to_tensor(states),
             to_tensor(actions),

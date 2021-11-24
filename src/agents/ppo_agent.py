@@ -29,6 +29,7 @@ class PPOAgent:
         self.optimizer = torch.optim.Adam(
             [
                 {"params": self.policy.actor.parameters(), "lr": ACTOR_LEARNING_RATE},
+                {"params": self.policy.conv.parameters(), "lr": ACTOR_LEARNING_RATE},
                 {"params": self.policy.critic.parameters(), "lr": CRITIC_LEARNING_RATE},
             ],
             eps=OPTIMIZER_EPSILON,

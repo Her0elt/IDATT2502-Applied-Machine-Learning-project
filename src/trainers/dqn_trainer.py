@@ -5,8 +5,8 @@ import torch
 from tqdm import tqdm
 
 import wandb
-from src.agents.dqn_agent import DQNAgent
 from src.agents.ddqn_agent import DoubleDQNAgent
+from src.agents.dqn_agent import DQNAgent
 from src.constants import (
     BATCH_SIZE,
     COPY_STEPS,
@@ -66,7 +66,7 @@ def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
 
     total_rewards = []
     max_episode_reward = 0
-
+    flags = 0
     for ep_num in tqdm(range(num_episodes)):
         state = env.reset()
         frames = []
@@ -91,6 +91,8 @@ def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
 
             state = state_next
             if done:
+                if info["flag_get"]:
+                    flags += 1
                 if total_reward > max_episode_reward:
                     try:
                         max_episode_reward = total_reward
@@ -114,7 +116,7 @@ def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
                             "mean_last_10_episodes": np.mean(total_rewards[-10:]),
                             "episode_reward": np.sum(total_reward),
                             "epsilon": agent.epsilon,
-                            "hit_flag": int(info["flag_get"]),
+                            "has_won_10_times": 1 if flags >= 10 else 0,
                         },
                         step=ep_num,
                     )
