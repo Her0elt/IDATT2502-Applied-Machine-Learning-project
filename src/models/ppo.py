@@ -8,7 +8,7 @@ from torch.distributions import Categorical
 from src.constants import PPO_MODEL_SAVE_NAME
 
 
-class PPO(nn.Module): 
+class PPO(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(PPO, self).__init__()
         self.conv = nn.Sequential(

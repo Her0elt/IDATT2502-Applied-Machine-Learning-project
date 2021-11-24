@@ -80,7 +80,7 @@ class DQNAgent:
             pickle.dump(self.num_in_queue, f)
         with open(TOTAL_REWARDS_PICKLE, "wb") as f:
             pickle.dump(total_rewards, f)
-            
+
     def update_epsilon(self):
         """Function to decay epsilon by the epsilon decay rate
         """
