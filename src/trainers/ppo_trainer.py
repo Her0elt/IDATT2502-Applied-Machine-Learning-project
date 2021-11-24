@@ -26,7 +26,7 @@ from src.environment import create_mario_env
 
 
 def run(pretrained: bool, num_episodes: int = EPISODES, wandb_name: str = None):
-    """funciton to run and train a ppo agent
+    """Function to run and train a ppo agent
 
     Args:
         pretrained (bool): boolean that sys if we want to load a previous agent or not
@@ -149,7 +149,7 @@ def to_tensor(list):
 
 
 def play():
-    """funciton to load a ppo agent and play the environment
+    """Function to load a ppo agent and play the environment
     """
     env = create_mario_env()
     state_space = env.observation_space.shape

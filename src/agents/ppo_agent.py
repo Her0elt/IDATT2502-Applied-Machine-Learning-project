@@ -19,6 +19,7 @@ from src.models.ppo import PPO
 
 
 class PPOAgent:
+    
     def __init__(self, state_shape, action_shape):
         self.gamma = PPO_GAMMA
         self.lamda = PPO_LAMBDA
@@ -38,19 +39,19 @@ class PPOAgent:
         )
 
     def save(self):
-        """funciton to save the policy network
+        """Function to save the policy network
         """
         self.policy.save()
 
     def load(self):
-        """function to load the policy network from the given file defined in constants,
+        """Function to load the policy network from the given file defined in constants,
         and loading the policy weights over to the target policy
         """
         self.policy.load(device=self.device)
         self.policy_old.load_state_dict(self.policy.state_dict())
 
     def play(self, state: torch.Tensor) -> int:
-        """function to preform an action by the actor network
+        """Function to preform an action by the actor network
 
         Args:
             state (torch.Tensor): the given state to calculate the aciton from
@@ -65,7 +66,7 @@ class PPOAgent:
         return action
 
     def act(self, state: torch.Tensor) -> Tuple:
-        """function to preform an action in the environment given a state
+        """Function to preform an action in the environment given a state
 
         Args:
             state (torch.Tensor): the given state to calculate the action from
@@ -87,7 +88,7 @@ class PPOAgent:
     def calculate_advantages(
         self, rewards: torch.Tensor, dones: torch.Tensor, values: torch.Tensor
     ) -> Tuple:
-        """function to calculate the advantages from a given set of samples by Generalized Advantage Estimation
+        """Function to calculate the advantages from a given set of samples by Generalized Advantage Estimation
 
         Args:
             rewards (torch.Tensor): the sample rewards
@@ -128,7 +129,7 @@ class PPOAgent:
         returns: torch.Tensor,
         advantages: torch.Tensor,
     ) -> Any:
-        """function to calculate the loss by the ratio between the old and current policy and the advantages,
+        """Function to calculate the loss by the ratio between the old and current policy and the advantages,
         and clipping said advantages between 1+clip_range and 1-clip_range
 
         Args:
@@ -159,7 +160,7 @@ class PPOAgent:
         prev_log_probs: torch.Tensor,
         values: torch.Tensor,
     ):
-        """function to train the model on collected samples
+        """Function to train the model on collected samples
 
         Args:
             states (torch.Tensor): state samples

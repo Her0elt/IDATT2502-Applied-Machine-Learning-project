@@ -34,7 +34,7 @@ def run(
     double: bool = True,
     wandb_name: str = None,
 ):
-    """function to run and train a dqn or ddqn agent
+    """Function to run and train a dqn or ddqn agent
 
     Args:
         pretrained (bool): boolean that sys if we want to load a previous agent or not
@@ -147,7 +147,7 @@ def run(
 
 
 def play(double=True):
-    """function to play a trained dqn or ddqn model
+    """Function to play a trained dqn or ddqn model
 
     Args:
         double (bool, optional): if the agent playing is a ddqn or dqn agent. Defaults to True.

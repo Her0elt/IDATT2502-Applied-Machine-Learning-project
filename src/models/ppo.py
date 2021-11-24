@@ -8,7 +8,7 @@ from torch.distributions import Categorical
 from src.constants import PPO_MODEL_SAVE_NAME
 
 
-class PPO(nn.Module):
+class PPO(nn.Module): 
     def __init__(self, input_shape, n_actions):
         super(PPO, self).__init__()
         self.conv = nn.Sequential(
@@ -30,7 +30,7 @@ class PPO(nn.Module):
         )
 
     def _get_conv_out(self, shape: Tuple):
-        """function to get the output shape of the cnn
+        """Function to get the output shape of the cnn
 
         Args:
             shape (Tuple): the input shape to the cnn
@@ -42,7 +42,7 @@ class PPO(nn.Module):
         return int(np.prod(o.size()))
 
     def forward(self, x: Any):
-        """function to use the network on a given state in the shape of (1, *input_shape)
+        """Function to use the network on a given state in the shape of (1, *input_shape)
 
         Args:
             x (Any): given state to calculate from
@@ -57,12 +57,12 @@ class PPO(nn.Module):
         )
 
     def save(self):
-        """function to save the model to file
+        """Function to save the model to file
         """
         torch.save(self.state_dict(), PPO_MODEL_SAVE_NAME)
 
     def load(self, device: str):
-        """function to load a model to a given device (cpu or gpu)
+        """Function to load a model to a given device (cpu or gpu)
 
         Args:
             device (str): the given device

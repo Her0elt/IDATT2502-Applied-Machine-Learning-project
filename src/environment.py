@@ -126,7 +126,7 @@ class BufferWrapper(gym.ObservationWrapper):
 
 
 def create_mario_env() -> Any:
-    """function to create a Super Mario Bros environment wrapped by our custom  wrappers
+    """Function to create a Super Mario Bros environment wrapped by our custom  wrappers
 
     Returns:
         Any: the wrapped environment

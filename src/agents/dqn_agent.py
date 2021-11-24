@@ -80,9 +80,15 @@ class DQNAgent:
             pickle.dump(self.num_in_queue, f)
         with open(TOTAL_REWARDS_PICKLE, "wb") as f:
             pickle.dump(total_rewards, f)
+            
+    def update_epsilon(self):
+        """Function to decay epsilon by the epsilon decay rate
+        """
+        self.epsilon *= self.epsilon_decay_rate
+        self.epsilon = max(self.min_epsilon, self.epsilon)
 
     def act(self, state: np.ndarray) -> int:
-        """function to pick an action based on epsilon (exploration rate)
+        """Function to pick an action based on epsilon (exploration rate)
 
         Args:
             state (np.ndarray): the given state to preform an action based on
@@ -97,13 +103,12 @@ class DQNAgent:
                 torch.tensor(state, dtype=torch.float32, device=self.device)
             )
             action = torch.argmax(action_values, dim=1).item()
-        self.epsilon *= self.epsilon_decay_rate
-        self.epsilon = max(self.min_epsilon, self.epsilon)
+        self.update_epsilon()
         self.step += 1
         return action
 
     def play(self, state: np.ndarray) -> int:
-        """function to play the environment based on a trained model
+        """Function to play the environment based on a trained model
 
         Args:
             state (np.ndarray): given state to base the action on
@@ -126,7 +131,7 @@ class DQNAgent:
         next_state: torch.Tensor,
         done: bool,
     ):
-        """function to remember a result from taking an action in the environment
+        """Function to remember a result from taking an action in the environment
 
         Args:
             state (torch.Tensor): state that the action was calculated from
@@ -147,7 +152,7 @@ class DQNAgent:
         done: torch.Tensor(bool),
         next_state: torch.Tensor,
     ) -> torch.Tensor:
-        """function to update the q-values of a given batch of memory based on the bellman equation
+        """Function to update the q-values of a given batch of memory based on the bellman equation
 
         Args:
             reward (torch.Tensor): rewards for the given batch
@@ -161,12 +166,8 @@ class DQNAgent:
             (self.gamma * self.model(next_state).max(1).values.unsqueeze(1)), 1 - done,
         )
 
-    def update_epsilon(self):
-        self.epsilon *= self.epsilon_decay_rate
-        self.epsilon = max(self.min_epsilon, self.epsilon)
-
     def replay(self):
-        """function to train the model based on a random batch of experiences from the replay buffer
+        """Function to train the model based on a random batch of experiences from the replay buffer
         """
 
         if self.batch_size > self.num_in_queue:

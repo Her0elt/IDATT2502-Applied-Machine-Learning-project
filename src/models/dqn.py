@@ -25,7 +25,7 @@ class DQN(nn.Module):
         )
 
     def _get_conv_out(self, shape: Tuple):
-        """function to get the output shape of the cnn
+        """Function to get the output shape of the cnn
 
         Args:
             shape (Tuple): the input shape to the cnn
@@ -37,7 +37,7 @@ class DQN(nn.Module):
         return int(np.prod(o.size()))
 
     def forward(self, x: Any):
-        """function to use the network on a given state in the shape of (1, *input_shape)
+        """Function to use the network on a given state in the shape of (1, *input_shape)
 
         Args:
             x (Any): given state to calculate from
@@ -49,7 +49,7 @@ class DQN(nn.Module):
         return self.fc(conv_out)
 
     def save(self, target: bool = False):
-        """function to save the model to file
+        """Function to save the model to file
 
         Args:
             target (bool, optional): boolean to tell if the model is a target network or not. Defaults to False.
@@ -58,7 +58,7 @@ class DQN(nn.Module):
         torch.save(self.state_dict(), name)
 
     def load(self, device: str, target: bool = False):
-        """function to load the a model to a given device cpu or gpu
+        """Function to load the a model to a given device cpu or gpu
 
         Args:
             device (str): the given device

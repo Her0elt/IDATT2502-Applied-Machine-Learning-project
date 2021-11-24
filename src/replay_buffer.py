@@ -30,7 +30,7 @@ class ReplyBuffer:
         done: bool,
         end_pos: int,
     ):
-        """function to remember a given result from a action in the environment
+        """Function to remember a given result from a action in the environment
 
         Args:
             state (torch.Tensor): the given state that lead to the action
@@ -47,7 +47,7 @@ class ReplyBuffer:
         self.done_mem[end_pos] = done.float()
 
     def recall(self, num_in_queue: int, memory_sample_size: int, device: str) -> Tuple:
-        """function to recall a given number of result
+        """Function to recall a given number of result
 
         Args:
             num_in_queue (int): where to remember from
@@ -69,7 +69,7 @@ class ReplyBuffer:
         return state, action, reward, next_state, done
 
     def save(self):
-        """funciton to save the current replay buffer
+        """Function to save the current replay buffer
         """
         torch.save(self.sate_mem, STATE_SAVE_NAME)
         torch.save(self.action_mem, ACTION_SAVE_NAME)
@@ -78,7 +78,7 @@ class ReplyBuffer:
         torch.save(self.done_mem, DONE_SAVE_NAME)
 
     def load(self):
-        """function to load a replay buffer from file
+        """Function to load a replay buffer from file
         """
         self.sate_mem = torch.load(STATE_SAVE_NAME)
         self.action_mem = torch.load(ACTION_SAVE_NAME)
