@@ -25,7 +25,14 @@ from src.constants import (
 from src.environment import create_mario_env
 
 
-def run(pretrained, num_episodes=EPISODES, wandb_name=None):
+def run(pretrained: bool, num_episodes: int = EPISODES, wandb_name: str = None):
+    """funciton to run and train a ppo agent
+
+    Args:
+        pretrained (bool): boolean that sys if we want to load a previous agent or not
+        num_episodes (int, optional): the number of episodes to train for. Defaults to EPISODES from constants.
+        wandb_name (str, optional): the name of wandb logging session. Defaults to None.
+    """
 
     should_log = bool(wandb_name)
 
@@ -142,6 +149,8 @@ def to_tensor(list):
 
 
 def play():
+    """funciton to load a ppo agent and play the environment
+    """
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n

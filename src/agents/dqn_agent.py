@@ -55,6 +55,8 @@ class DQNAgent:
         )
 
     def load(self):
+        """Function to load a DQN model from the given name in constants
+        """
         self.model.load(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
         self.memory.load()
@@ -64,7 +66,12 @@ class DQNAgent:
         with open(NUM_IN_QUEUE_PICKLE, "rb") as f:
             self.num_in_queue = pickle.load(f)
 
-    def save(self, total_rewards):
+    def save(self, total_rewards: int):
+        """Function to save the model and target_model, along with the replay buffer
+
+        Args:
+            total_rewards (int): the total reward at the time of saving
+        """
         self.model.save()
         self.memory.save()
         with open(ENDING_POSISTION_PICKLE, "wb") as f:
@@ -74,7 +81,15 @@ class DQNAgent:
         with open(TOTAL_REWARDS_PICKLE, "wb") as f:
             pickle.dump(total_rewards, f)
 
-    def act(self, state):
+    def act(self, state: np.ndarray) -> int:
+        """function to pick an action based on epsilon (exploration rate)
+
+        Args:
+            state (np.ndarray): the given state to preform an action based on
+
+        Returns:
+            int: the optimal action given the state, or a random state if exploration was picked
+        """
         if np.random.rand() < self.epsilon:
             action = np.random.randint(self.action_space)
         else:
@@ -87,7 +102,15 @@ class DQNAgent:
         self.step += 1
         return action
 
-    def play(self, state):
+    def play(self, state: np.ndarray) -> int:
+        """function to play the environment based on a trained model
+
+        Args:
+            state (np.ndarray): given state to base the action on
+
+        Returns:
+            int: best action given the current state
+        """
         return (
             torch.argmax(self.model(state.to(self.device)))
             .unsqueeze(0)
@@ -95,14 +118,45 @@ class DQNAgent:
             .cpu()
         )
 
-    def remember(self, state, action, reward, next_state, done):
+    def remember(
+        self,
+        state: torch.Tensor,
+        action: torch.Tensor,
+        reward: int,
+        next_state: torch.Tensor,
+        done: bool,
+    ):
+        """function to remember a result from taking an action in the environment
+
+        Args:
+            state (torch.Tensor): state that the action was calculated from
+            action (torch.Tensor): the action that was preformed
+            reward (int): the given reward that the action gave
+            next_state (torch.Tensor): the next state given the action
+            done (bool): boolean that says if the action lead to round being over
+        """
         self.ending_position = (self.ending_position + 1) % self.memory_size
         self.num_in_queue = min(self.num_in_queue + 1, self.memory_size)
         self.memory.append(
             state, action, reward, next_state, done, self.ending_position
         )
 
-    def update_q_values(self, reward, done, next_state):
+    def update_q_values(
+        self,
+        reward: torch.Tensor(int),
+        done: torch.Tensor(bool),
+        next_state: torch.Tensor,
+    ) -> torch.Tensor:
+        """function to update the q-values of a given batch of memory based on the bellman equation
+
+        Args:
+            reward (torch.Tensor): rewards for the given batch
+            done (torch.Tensor): array that says if the given action ended the round or not
+            next_state (torch.Tensor): the next state to optimize the q values based on
+
+        Returns:
+            torch.Tensor: the updated q values
+        """
         return reward + torch.mul(
             (self.gamma * self.model(next_state).max(1).values.unsqueeze(1)), 1 - done,
         )
@@ -112,6 +166,8 @@ class DQNAgent:
         self.epsilon = max(self.min_epsilon, self.epsilon)
 
     def replay(self):
+        """function to train the model based on a random batch of experiences from the replay buffer
+        """
 
         if self.batch_size > self.num_in_queue:
             return

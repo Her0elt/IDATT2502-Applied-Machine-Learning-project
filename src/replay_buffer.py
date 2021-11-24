@@ -1,4 +1,5 @@
 import random
+from typing import Tuple
 
 import torch
 
@@ -20,15 +21,43 @@ class ReplyBuffer:
         self.next_state_mem = torch.zeros(memory_size, *self.state_space)
         self.done_mem = torch.zeros(memory_size, 1)
 
-    def append(self, state, action, reward, next_state, done, end_pos):
+    def append(
+        self,
+        state: torch.Tensor,
+        action: int,
+        reward: float,
+        next_state: torch.Tensor,
+        done: bool,
+        end_pos: int,
+    ):
+        """function to remember a given result from a action in the environment
+
+        Args:
+            state (torch.Tensor): the given state that lead to the action
+            action (int): the action preformed
+            reward (float): the reward the action resulted in
+            next_state (torch.Tensor): the next state given the action
+            done (torch.Tensor): boolean that says if the given aciton ended the round or not
+            end_pos (int): the place in the memory to append the result
+        """
         self.sate_mem[end_pos] = state.float()
         self.action_mem[end_pos] = action.float()
         self.reward_mem[end_pos] = reward.float()
         self.next_state_mem[end_pos] = next_state.float()
         self.done_mem[end_pos] = done.float()
 
-    def recall(self, num_in_queue, memory_sample_size, device):
-        # Randomly sample 'batch size' experiences
+    def recall(self, num_in_queue: int, memory_sample_size: int, device: str) -> Tuple:
+        """function to recall a given number of result
+
+        Args:
+            num_in_queue (int): where to remember from
+            memory_sample_size (int): the batch size to pick out of the replay buffer
+            device (str): the device to load the tensors into
+
+        Returns:
+            Tuple: tensors with the recalled memory results
+        """
+
         idx = random.choices(range(num_in_queue), k=memory_sample_size)
 
         state = self.sate_mem[idx].to(device)
@@ -40,6 +69,8 @@ class ReplyBuffer:
         return state, action, reward, next_state, done
 
     def save(self):
+        """funciton to save the current replay buffer
+        """
         torch.save(self.sate_mem, STATE_SAVE_NAME)
         torch.save(self.action_mem, ACTION_SAVE_NAME)
         torch.save(self.reward_mem, REWARD_SAVE_NAME)
@@ -47,6 +78,8 @@ class ReplyBuffer:
         torch.save(self.done_mem, DONE_SAVE_NAME)
 
     def load(self):
+        """function to load a replay buffer from file
+        """
         self.sate_mem = torch.load(STATE_SAVE_NAME)
         self.action_mem = torch.load(ACTION_SAVE_NAME)
         self.reward_mem = torch.load(REWARD_SAVE_NAME)

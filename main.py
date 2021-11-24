@@ -1,8 +1,8 @@
 from src.constants import GAMMA, MIN_EPSILON
-# from src.constants import GAMMA, MIN_EPSILON, PPO_GAMMA, PPO_LAMBDA, WORLD
 from src.trainers.dqn_trainer import run as DQN_run
 
 # from src.trainers.ppo_trainer import run as PPO_Run
+# from src.constants import GAMMA, MIN_EPSILON, PPO_GAMMA, PPO_LAMBDA, WORLD
 
 DQN_run(
     pretrained=False,
