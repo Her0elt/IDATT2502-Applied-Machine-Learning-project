@@ -135,7 +135,6 @@ def run(
 
                 break
 
-        
         total_rewards.append(total_reward)
         if ep_num & CHECKPOINT_AMOUNT == 0:
             agent.save()
@@ -147,13 +146,13 @@ def run(
     env.close()
 
 
-def play(double=True, load_file: str=None):
+def play(double=True, load_file: str = None):
     """Function to play a trained dqn or ddqn model
 
     Args:
         double (bool, optional):  if the agent playing is a ddqn or dqn agent. Defaults to True.
         load_file (str, optional): name of model file to load. Defaults to None, if None uses agent load function.
-    """    
+    """
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
@@ -166,7 +165,7 @@ def play(double=True, load_file: str=None):
         agent.model = torch.load(load_file)
     else:
         agent.model.load(agent.device)
-    
+
     state = env.reset()
     state = torch.Tensor(np.array([state]))
     while True:

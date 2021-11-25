@@ -12,7 +12,9 @@ class PPO(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(PPO, self).__init__()
         self.actor = nn.Sequential(
-            nn.Conv2d(in_channels=input_shape[0], out_channels=32, kernel_size=8, stride=4),
+            nn.Conv2d(
+                in_channels=input_shape[0], out_channels=32, kernel_size=8, stride=4
+            ),
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),
             nn.ReLU(),
@@ -21,10 +23,12 @@ class PPO(nn.Module):
             nn.Flatten(),
             nn.Linear(3136, 512),
             nn.ReLU(),
-            nn.Linear(512, n_actions)
+            nn.Linear(512, n_actions),
         )
         self.critic = nn.Sequential(
-            nn.Conv2d(in_channels=input_shape[0], out_channels=32, kernel_size=8, stride=4),
+            nn.Conv2d(
+                in_channels=input_shape[0], out_channels=32, kernel_size=8, stride=4
+            ),
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),
             nn.ReLU(),
@@ -33,7 +37,7 @@ class PPO(nn.Module):
             nn.Flatten(),
             nn.Linear(3136, 512),
             nn.ReLU(),
-            nn.Linear(512, 1)
+            nn.Linear(512, 1),
         )
 
     def _get_conv_out(self, shape: Tuple):

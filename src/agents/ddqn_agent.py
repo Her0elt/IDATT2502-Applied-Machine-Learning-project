@@ -153,10 +153,7 @@ class DoubleDQNAgent:
         )
 
     def update_q_values(
-        self,
-        reward: torch.Tensor,
-        done: torch.Tensor,
-        next_state: torch.Tensor,
+        self, reward: torch.Tensor, done: torch.Tensor, next_state: torch.Tensor,
     ) -> torch.Tensor:
         """Function to update the q-values of a given batch of memory based on the bellman equation
 

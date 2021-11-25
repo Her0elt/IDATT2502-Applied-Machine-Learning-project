@@ -2,10 +2,10 @@ import collections
 
 import cv2
 import gym
-from gym.core import Env
 import gym_super_mario_bros
 import numpy as np
 import torch
+from gym.core import Env
 from nes_py.wrappers import JoypadSpace
 
 from src.constants import (
