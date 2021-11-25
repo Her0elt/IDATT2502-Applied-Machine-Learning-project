@@ -19,7 +19,6 @@ from src.models.ppo import PPO
 
 
 class PPOAgent:
-    
     def __init__(self, state_shape, action_shape):
         self.gamma = PPO_GAMMA
         self.lamda = PPO_LAMBDA
