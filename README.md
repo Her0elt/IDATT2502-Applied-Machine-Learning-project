@@ -1,11 +1,8 @@
 # Prosjekt i IDATT2502 - Anvendt maskinlæring med prosjekt
 
-- Link til rapport, (kanskje)
-  - Alternativt noe a la introduksjonen -> Hva prosjektet er
-
 ## Hva
 
-Dette er et prosjekt i faget "IDATT2502 - Anvendt maskinlæring med prosjekt" der vi har sammenlignet flere forskjellige Reinforcement Learning-algoritmer for å se hvilken av dem som raskest kan trenes til å gjentagende og stabilt vinne Super Mario Bros. Rapporten vår kan leses **BYTT UT LINK** [her](https://nrk.no) **BYTT UT LINK**. Algoritmene vi har sammenlignet er DQN (Deep Q-Learning), Double DQN og PPO (Proximal Policy Optimalization).
+Dette er et prosjekt i faget "IDATT2502 - Anvendt maskinlæring med prosjekt" der vi har sammenlignet flere forskjellige Reinforcement Learning-algoritmer for å se hvilken av dem som raskest kan trenes til å gjentagende og stabilt vinne Super Mario Bros. Algoritmene vi har sammenlignet er DQN (Deep Q-Learning), Double DQN og PPO (Proximal Policy Optimalization).
 
 ## Hvordan kjøre
 
@@ -23,6 +20,6 @@ Så kan du åpne `main.py` og kjøre enten "DQN_RUN" eller "PPO_Run". I "DQN_RUN
 
 Hvis du ikke vil logge med WandB så kan du la være å fylle ut `wandb_name` i run-funksjonene. For at du da evt skal kunne se noe av kjøringene så må du selv legge til `env.render()` der du ønsker å se tilstanden til spillet, dette vil normalt være der vi har skrevet `frames.append(env.frame)`.
 
-![k](https://im7.ezgif.com/tmp/ezgif-7-0c69b702c0d5.gif)
+Eksempel på seier:
 
 ![super-mario-speedrun](gifs/super-mario-speedrun.gif)

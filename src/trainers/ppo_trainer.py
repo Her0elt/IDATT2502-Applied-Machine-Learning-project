@@ -152,9 +152,12 @@ def to_tensor(list):
     return list
 
 
-def play(load_file=None):
+def play(load_file: str=None):
     """Function to load a ppo agent and play the environment
-    """
+
+    Args:
+        load_file (str, optional): name of model file to load. Defaults to None, if None uses agent load function.
+    """    
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
