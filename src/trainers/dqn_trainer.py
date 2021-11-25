@@ -146,7 +146,7 @@ def run(
     env.close()
 
 
-def play(double=True):
+def play(double=True, load_file=None):
     """Function to play a trained dqn or ddqn model
 
     Args:
@@ -160,12 +160,16 @@ def play(double=True):
         if double
         else DQNAgent(env, state_space, action_space)
     )
-    agent.model.load(agent.device)
+    if load_file:
+        agent.model = torch.load(load_file)
+    else:
+        agent.model.load(agent.device)
+    
     state = env.reset()
     state = torch.Tensor(np.array([state]))
     while True:
         action = agent.play(state)
-        state_next, _, done, _ = env.step(int(action[0]))
+        state_next, _, done, _ = env.step(action.item())
         env.render()
         time.sleep(0.05)
         state_next = torch.Tensor(np.array([state_next]))

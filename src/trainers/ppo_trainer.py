@@ -152,18 +152,21 @@ def to_tensor(list):
     return list
 
 
-def play():
+def play(load_file=None):
     """Function to load a ppo agent and play the environment
     """
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
     agent = PPOAgent(state_space, action_space)
-    agent.load()
+    if load_file:
+        agent.model = torch.load(load_file)
+    else:
+        agent.load()
     state = env.reset()
     while True:
         action = agent.play(state)
-        state_next, _, done, _ = env.step(int(action[0]))
+        state_next, _, done, _ = env.step(action.item())
         env.render()
         time.sleep(0.05)
         state = state_next
