@@ -25,7 +25,14 @@ from src.constants import (
 from src.environment import create_mario_env
 
 
-def run(pretrained, num_episodes=EPISODES, wandb_name=None):
+def run(pretrained: bool, num_episodes: int = EPISODES, wandb_name: str = None):
+    """Function to run and train a ppo agent
+
+    Args:
+        pretrained (bool): boolean that sys if we want to load a previous agent or not
+        num_episodes (int, optional): the number of episodes to train for. Defaults to EPISODES from constants.
+        wandb_name (str, optional): the name of wandb logging session. Defaults to None, if not None logging to wandb is performed.
+    """
 
     should_log = bool(wandb_name)
 
@@ -58,7 +65,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
     episodic_reward = []
     max_episode_reward = 0
     play_episode = 1
-
+    flags = 0
     for ep_num in tqdm(range(num_episodes)):
         total_reward = []
         frames = []
@@ -69,16 +76,19 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
         prev_log_probs = np.zeros(STEP_AMOUNT, dtype=np.float32)
         values = np.zeros(STEP_AMOUNT, dtype=np.float32)
         state = env.reset()
+        reward = 0
         for step in range(STEP_AMOUNT):
             states[step] = state
             actions[step], values[step], prev_log_probs[step] = agent.act(state)
             state, rewards[step], dones[step], info = env.step(actions[step])
             frames.append(env.frame)
             episodic_reward.append(rewards[step])
+            reward += rewards[step]
             if dones[step]:
-                flags.append(int(info["flag_get"]))
+                if info['flag_get']:
+                    flags += 1
                 total_episode_reward = np.sum(episodic_reward)
-                total_reward.append(total_episode_reward)
+                total_reward.append(reward)
                 if total_episode_reward > max_episode_reward:
                     max_episode_reward = total_episode_reward
                     if should_log and total_episode_reward > MIN_WANDB_VIDEO_REWARD:
@@ -88,7 +98,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
                                 {
                                     "video": wandb.Video(
                                         np.stack(frames, 0).transpose(0, 3, 1, 2),
-                                        str(total_episode_reward),
+                                        str(reward),
                                         fps=25,
                                         format="mp4",
                                     )
@@ -101,8 +111,8 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
                     wandb.log(
                         {
                             "mean_last_10_episodes": np.mean(total_reward[-10:]),
-                            "episode_reward": np.sum(total_episode_reward),
-                            "nr_found_flag_last_10": np.sum(flags[-10:]),
+                            "episode_reward": reward,
+                            "flag_count": flags,
                         },
                         step=play_episode,
                     )
@@ -110,6 +120,7 @@ def run(pretrained, num_episodes=EPISODES, wandb_name=None):
                 episodic_reward = []
                 play_episode += 1
                 frames = []
+                reward = 0
                 env.reset()
 
         # Adds the an extra value so you can calculate advantages with
@@ -142,6 +153,8 @@ def to_tensor(list):
 
 
 def play():
+    """Function to load a ppo agent and play the environment
+    """
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n

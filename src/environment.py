@@ -2,6 +2,7 @@ import collections
 
 import cv2
 import gym
+from gym.core import Env
 import gym_super_mario_bros
 import numpy as np
 import torch
@@ -77,6 +78,9 @@ class ProcessFrame84(gym.ObservationWrapper):
 
 
 class ImageToPyTorch(gym.ObservationWrapper):
+    """Class to convert a state image to a pytorch tensor
+    """
+
     def __init__(self, env):
         super(ImageToPyTorch, self).__init__(env)
         old_shape = self.observation_space.shape
@@ -99,6 +103,8 @@ class ScaledFloatFrame(gym.ObservationWrapper):
 
 
 class BufferWrapper(gym.ObservationWrapper):
+    """Class to wrapper observation in a buffer"""
+
     def __init__(self, env, n_steps, dtype=np.float32):
         super(BufferWrapper, self).__init__(env)
         self.dtype = dtype
@@ -119,7 +125,12 @@ class BufferWrapper(gym.ObservationWrapper):
         return self.buffer
 
 
-def create_mario_env():
+def create_mario_env() -> Env:
+    """Function to create a Super Mario Bros environment wrapped by our custom  wrappers
+
+    Returns:
+        Env: the wrapped environment
+    """
     env = gym_super_mario_bros.make(WORLD)
     env = MaxAndSkipEnv(env)
     env = ProcessFrame84(env)

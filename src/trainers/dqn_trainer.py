@@ -28,8 +28,20 @@ from src.constants import (
 from src.environment import create_mario_env
 
 
-def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
+def run(
+    pretrained: bool,
+    num_episodes: int = EPISODES,
+    double: bool = True,
+    wandb_name: str = None,
+):
+    """Function to run and train a dqn or ddqn agent
 
+    Args:
+        pretrained (bool): boolean that sys if we want to load a previous agent or not
+        num_episodes (int, optional): the number of episodes to train for. Defaults to EPISODES from constants.
+        double (bool, optional): boolean that says if the agent is going to be a ddqn agent or dqn agent. Defaults to True.
+        wandb_name (str, optional): the name of wandb logging session. Defaults to None, if not None logging to wandb is performed.
+    """
     should_log = bool(wandb_name)
 
     if should_log:
@@ -116,7 +128,7 @@ def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
                             "mean_last_10_episodes": np.mean(total_rewards[-10:]),
                             "episode_reward": np.sum(total_reward),
                             "epsilon": agent.epsilon,
-                            "has_won_10_times": 1 if flags >= 10 else 0,
+                            "flag_count": flags,
                         },
                         step=ep_num,
                     )
@@ -134,15 +146,23 @@ def run(pretrained, num_episodes=EPISODES, double=True, wandb_name=None):
     env.close()
 
 
-def play():
+def play(double=True):
+    """Function to play a trained dqn or ddqn model
+
+    Args:
+        double (bool, optional): if the agent playing is a ddqn or dqn agent. Defaults to True.
+    """
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
-    agent = DoubleDQNAgent(env, state_space, action_space, memory_size=0)
+    agent = (
+        DoubleDQNAgent(env, state_space, action_space)
+        if double
+        else DQNAgent(env, state_space, action_space)
+    )
     agent.model.load(agent.device)
     state = env.reset()
     state = torch.Tensor(np.array([state]))
-
     while True:
         action = agent.play(state)
         state_next, _, done, _ = env.step(int(action[0]))
