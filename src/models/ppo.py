@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
+import copy
 
 from src.constants import PPO_MODEL_SAVE_NAME
 
@@ -20,12 +21,14 @@ class PPO(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
         )
-
+        self.conv2 = copy.deepcopy(self.conv)
         conv_out_size = self._get_conv_out(input_shape)
         self.actor = nn.Sequential(
+            self.conv,
             nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, n_actions)
         )
         self.critic = nn.Sequential(
+            self.conv2,
             nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, 1)
         )
 
@@ -50,10 +53,9 @@ class PPO(nn.Module):
         Returns:
             Tuple: the given action to preform, and the given q-tabell for the given state
         """
-        conv_out = self.conv(x).view(x.size()[0], -1)
         return (
-            Categorical(logits=self.actor(conv_out)),
-            self.critic(conv_out).reshape(-1),
+            Categorical(logits=self.actor(x)),
+            self.critic(x).reshape(-1),
         )
 
     def save(self):

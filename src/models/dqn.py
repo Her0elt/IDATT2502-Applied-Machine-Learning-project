@@ -43,7 +43,7 @@ class DQN(nn.Module):
             x (Any): given state to calculate from
 
         Returns:
-            Tuple: the given q-tabell for the given state
+            Tuple: the given Q-table for the given state
         """
         conv_out = self.conv(x).view(x.size()[0], -1)
         return self.fc(conv_out)
