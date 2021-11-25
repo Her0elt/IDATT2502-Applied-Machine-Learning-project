@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
-import copy
 
 from src.constants import PPO_MODEL_SAVE_NAME
 
@@ -12,24 +11,29 @@ from src.constants import PPO_MODEL_SAVE_NAME
 class PPO(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(PPO, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+        self.actor = nn.Sequential(
+            nn.Conv2d(in_channels=input_shape[0], out_channels=32, kernel_size=8, stride=4),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-        )
-        self.conv2 = copy.deepcopy(self.conv)
-        conv_out_size = self._get_conv_out(input_shape)
-        self.actor = nn.Sequential(
-            self.conv,
-            nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, n_actions)
+            nn.Linear(3136, 512),
+            nn.ReLU(),
+            nn.Linear(512, n_actions)
         )
         self.critic = nn.Sequential(
-            self.conv2,
-            nn.Linear(conv_out_size, 512), nn.ReLU(), nn.Linear(512, 1)
+            nn.Conv2d(in_channels=input_shape[0], out_channels=32, kernel_size=8, stride=4),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(3136, 512),
+            nn.ReLU(),
+            nn.Linear(512, 1)
         )
 
     def _get_conv_out(self, shape: Tuple):

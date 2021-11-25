@@ -40,7 +40,7 @@ def run(
         pretrained (bool): boolean that sys if we want to load a previous agent or not
         num_episodes (int, optional): the number of episodes to train for. Defaults to EPISODES from constants.
         double (bool, optional): boolean that says if the agent is going to be a ddqn agent or dqn agent. Defaults to True.
-        wandb_name (str, optional): the name of wandb logging session. Defaults to None, if not None logging to wandb is preformed.
+        wandb_name (str, optional): the name of wandb logging session. Defaults to None, if not None logging to wandb is performed.
     """
     should_log = bool(wandb_name)
 

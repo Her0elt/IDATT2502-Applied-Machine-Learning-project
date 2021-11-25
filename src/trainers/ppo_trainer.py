@@ -31,7 +31,7 @@ def run(pretrained: bool, num_episodes: int = EPISODES, wandb_name: str = None):
     Args:
         pretrained (bool): boolean that sys if we want to load a previous agent or not
         num_episodes (int, optional): the number of episodes to train for. Defaults to EPISODES from constants.
-        wandb_name (str, optional): the name of wandb logging session. Defaults to None, if not None logging to wandb is preformed.
+        wandb_name (str, optional): the name of wandb logging session. Defaults to None, if not None logging to wandb is performed.
     """
 
     should_log = bool(wandb_name)

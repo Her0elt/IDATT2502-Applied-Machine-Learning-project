@@ -28,7 +28,7 @@ ENV_HEIGHT = 84
 ENV_WIDTH = 84
 
 # WandB constants
-#These need to be change to reflect your wandb project
+#These needs to be changed to reflect your wandb project
 WANDB_ENTITY = "idatt2502-project"
 WANDB_PPO_PROJECT = "super-mario-ppo"
 WANDB_DDQN_PROJECT = "super-mario-ddqn"
