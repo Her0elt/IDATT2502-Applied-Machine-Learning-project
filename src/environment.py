@@ -1,5 +1,4 @@
 import collections
-from typing import Any
 
 import cv2
 import gym
