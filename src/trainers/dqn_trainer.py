@@ -9,6 +9,7 @@ from src.agents.ddqn_agent import DoubleDQNAgent
 from src.agents.dqn_agent import DQNAgent
 from src.constants import (
     BATCH_SIZE,
+    CHECKPOINT_AMOUNT,
     COPY_STEPS,
     ENDING_POSISTION_PICKLE,
     EPISODES,
@@ -127,7 +128,6 @@ def run(
                         {
                             "mean_last_10_episodes": np.mean(total_rewards[-10:]),
                             "episode_reward": np.sum(total_reward),
-                            "epsilon": agent.epsilon,
                             "flag_count": flags,
                         },
                         step=ep_num,
@@ -135,9 +135,9 @@ def run(
 
                 break
 
-            agent.update_epsilon()
-
         total_rewards.append(total_reward)
+        if ep_num & CHECKPOINT_AMOUNT == 0:
+            agent.save()
 
         tqdm.write(
             "Total reward after episode {} is {}".format(ep_num + 1, total_reward)
@@ -146,11 +146,12 @@ def run(
     env.close()
 
 
-def play(double=True):
+def play(double=True, load_file: str = None):
     """Function to play a trained dqn or ddqn model
 
     Args:
-        double (bool, optional): if the agent playing is a ddqn or dqn agent. Defaults to True.
+        double (bool, optional):  if the agent playing is a ddqn or dqn agent. Defaults to True.
+        load_file (str, optional): name of model file to load. Defaults to None, if None uses agent load function.
     """
     env = create_mario_env()
     state_space = env.observation_space.shape
@@ -160,12 +161,16 @@ def play(double=True):
         if double
         else DQNAgent(env, state_space, action_space)
     )
-    agent.model.load(agent.device)
+    if load_file:
+        agent.model = torch.load(load_file)
+    else:
+        agent.model.load(agent.device)
+
     state = env.reset()
     state = torch.Tensor(np.array([state]))
     while True:
         action = agent.play(state)
-        state_next, _, done, _ = env.step(int(action[0]))
+        state_next, _, done, _ = env.step(action.item())
         env.render()
         time.sleep(0.05)
         state_next = torch.Tensor(np.array([state_next]))

@@ -85,7 +85,7 @@ def run(pretrained: bool, num_episodes: int = EPISODES, wandb_name: str = None):
             episodic_reward.append(rewards[step])
             reward += rewards[step]
             if dones[step]:
-                if info['flag_get']:
+                if info["flag_get"]:
                     flags += 1
                 total_episode_reward = np.sum(episodic_reward)
                 total_reward.append(reward)
@@ -152,18 +152,24 @@ def to_tensor(list):
     return list
 
 
-def play():
+def play(load_file: str = None):
     """Function to load a ppo agent and play the environment
+
+    Args:
+        load_file (str, optional): name of model file to load. Defaults to None, if None uses agent load function.
     """
     env = create_mario_env()
     state_space = env.observation_space.shape
     action_space = env.action_space.n
     agent = PPOAgent(state_space, action_space)
-    agent.load()
+    if load_file:
+        agent.model = torch.load(load_file)
+    else:
+        agent.load()
     state = env.reset()
     while True:
         action = agent.play(state)
-        state_next, _, done, _ = env.step(int(action[0]))
+        state_next, _, done, _ = env.step(action.item())
         env.render()
         time.sleep(0.05)
         state = state_next
