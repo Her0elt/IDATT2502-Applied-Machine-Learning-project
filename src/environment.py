@@ -3,6 +3,7 @@ from typing import Any
 
 import cv2
 import gym
+from gym.core import Env
 import gym_super_mario_bros
 import numpy as np
 import torch
@@ -125,11 +126,11 @@ class BufferWrapper(gym.ObservationWrapper):
         return self.buffer
 
 
-def create_mario_env() -> Any:
+def create_mario_env() -> Env:
     """Function to create a Super Mario Bros environment wrapped by our custom  wrappers
 
     Returns:
-        Any: the wrapped environment
+        Env: the wrapped environment
     """
     env = gym_super_mario_bros.make(WORLD)
     env = MaxAndSkipEnv(env)
