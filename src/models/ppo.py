@@ -20,7 +20,7 @@ class PPO(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(3136, 512),  # comes from output from Conv2d layer 2 64*7*7
+            nn.Linear(3136, 512),  # comes from output from Conv2d layer 3 64*7*7
             nn.ReLU(),
             nn.Linear(512, n_actions),
         )
@@ -34,7 +34,7 @@ class PPO(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(3136, 512),  # comes from output from Conv2d layer 2 64*7*7
+            nn.Linear(3136, 512),  # comes from output from Conv2d layer 3 64*7*7
             nn.ReLU(),
             nn.Linear(512, 1),
         )
