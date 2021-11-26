@@ -137,7 +137,7 @@ def run(
 
         total_rewards.append(total_reward)
         if ep_num & CHECKPOINT_AMOUNT == 0:
-            agent.save()
+            agent.save(total_rewards)
 
         tqdm.write(
             "Total reward after episode {} is {}".format(ep_num + 1, total_reward)
