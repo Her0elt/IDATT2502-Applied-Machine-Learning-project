@@ -1,6 +1,5 @@
-from typing import Any, Tuple
+from typing import Any
 
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
@@ -21,7 +20,7 @@ class PPO(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(3136, 512),
+            nn.Linear(3136, 512),  # comes from output from Conv2d layer 3 64*7*7
             nn.ReLU(),
             nn.Linear(512, n_actions),
         )
@@ -35,22 +34,10 @@ class PPO(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(3136, 512),
+            nn.Linear(3136, 512),  # comes from output from Conv2d layer 3 64*7*7
             nn.ReLU(),
             nn.Linear(512, 1),
         )
-
-    def _get_conv_out(self, shape: Tuple):
-        """Function to get the output shape of the cnn
-
-        Args:
-            shape (Tuple): the input shape to the cnn
-
-        Returns:
-            int: the output size of the cnn
-        """
-        o = self.conv(torch.zeros(1, *shape))
-        return int(np.prod(o.size()))
 
     def forward(self, x: Any):
         """Function to use the network on a given state in the shape of (1, *input_shape)
